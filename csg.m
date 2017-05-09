@@ -7,6 +7,6 @@ function csg
 % Coma Science Group, University of Liege, Belgium
 % $Id$
 
-csg_main
+csg_menu
 
 return
