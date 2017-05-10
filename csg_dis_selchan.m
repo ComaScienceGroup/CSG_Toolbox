@@ -27,7 +27,7 @@ function varargout = csg_dis_selchan(varargin)
 
 % Edit the above text to modify the response to help csg_dis_selchan
 
-% Last Modified by GUIDE v2.5 24-Oct-2016 09:15:52
+% Last Modified by GUIDE v2.5 10-May-2017 10:02:39
 
 % Begin initialization code - DO NOT EDIT
 
@@ -73,11 +73,6 @@ if isempty(varargin) || ~isfield(varargin{1},'file')
         prefile = spm_select(Inf, 'any', 'Select imported EEG file','' ...
             ,pwd,'\.[mMvVeErR][dDhHaA][fFDdTtwW]');
         set(handles.Selectall,'enable','off','visible','off');
-        set(handles.selectMEG,'enable','off','visible','off');
-        set(handles.selectEEG,'enable','off','visible','off');
-        set(handles.fctother,'enable','off','visible','off');
-        set(handles.selectMEG,'enable','off','visible','off');
-        set(handles.selectMEGPLANAR,'enable','off','visible','off');
         set(handles.desall,'enable','off','visible','off');
         set(handles.Score,'enable','off','visible','off');
         set(handles.text4,'visible','off');
@@ -164,25 +159,6 @@ if (~isempty(varargin) && isfield(varargin{1},'multcomp') && varargin{1}.multcom
     chanset=handles.chan{1};
     set(handles.list_available,'String',chanset);
     handles.chan=chanset;
-end
-
-handles.indmeeg = meegchannels(handles.Dmeg{1});
-handles.indeeg = [meegchannels(handles.Dmeg{1},'EEG') meegchannels(handles.Dmeg{1},'LFP')];
-handles.indmeg = meegchannels(handles.Dmeg{1},'MEG');
-handles.indmegplan = meegchannels(handles.Dmeg{1},'MEGPLANAR');
-handles.namother = setdiff(chanlabels(handles.Dmeg{1}), chanlabels(handles.Dmeg{1},handles.indmeeg));
-
-if isempty(handles.indeeg)
-    set(handles.selectEEG,'enable','off');
-end
-if isempty(handles.indmeg)
-    set(handles.selectMEG,'enable','off');
-end
-if isempty(handles.indmegplan)
-    set(handles.selectMEGPLAN,'enable','off');
-end
-if isempty(handles.namother)
-    set(handles.fctother,'enable','off');
 end
 
 % Update handles structure
@@ -377,18 +353,6 @@ function Selectall_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.list_selected,'String',upper(chanlabels(handles.Dmeg{1})));
 set(handles.list_available,'String',cell(0));
-if ~isempty(handles.indeeg)
-    set(handles.selectEEG,'Value',1);
-end
-if ~isempty(handles.indmeg)
-    set(handles.selectMEG,'Value',1);
-end
-if ~isempty(handles.indmegplan)
-    set(handles.selectMEGPLAN,'Value',1);
-end
-if ~isempty(handles.namother)
-    set(handles.fctother,'Value',1);
-end
 
 [dumb1,dumb2,index]=intersect(upper(chanlabels(handles.Dmeg{1})),upper(handles.names));
 
@@ -421,306 +385,6 @@ set(handles.load,'Value',0);
 % Update handles structure
 guidata(hObject, handles);
 
-% --- Executes on button press in selectEEG.
-function selectEEG_Callback(hObject, eventdata, handles)
-% hObject    handle to selectEEG (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-H = gcf;
-ALL = upper(chanlabels(handles.Dmeg{1}));
-valEEG = get(handles.selectEEG,'Value');   %Check if there are already EEG channels selected   
-EEG = upper(chanlabels(handles.Dmeg{1}, handles.indeeg));
-len = length(EEG);
-YET = get(handles.list_selected,'String')'; %Take the channels already selected
-if valEEG==1
-    prompt={['Indicate in how many parts you want divide this set if there are ',num2str(len),' EEG channels:'],...
-    'Indicate which part you want to see : '};
-    name='Select the Signal';
-    numlines=1;
-    defaultanswer={'1','1'};
-    answer=inputdlg(prompt,name,numlines,defaultanswer);
-    if ~isempty(answer) %If it's not "cancel" selected
-        answernbr = str2double(answer);
-        total = length(EEG);
-        n = answernbr (1);
-        i = answernbr (2);
-        if n > total
-
-            h = msgbox ('There is not enough EEG channels to divide by this number , by default all the channels will be selected'); 
-        elseif i>n
-            h = msgbox ('You can''t do this, by default all the channels will be selected');
-        else
-            EEG = EEG(ceil(total/n)*(i-1)+1 : ceil(total/n)*i); 
-        end
-        TOT = [YET EEG];
-    else 
-        TOT = YET; 
-        set(handles.selectEEG,'Value',0)
-    end  
-else       
-    EEG = intersect(upper(YET),upper(EEG));
-    TOT = setdiff(YET,EEG);
-end
-set(0,'CurrentFigure',H);
-OTHER = setdiff(ALL,TOT);
-set(handles.list_selected,'String',TOT);
-set(handles.list_available,'String',OTHER);
-[dumb1,dumb2,index]=intersect(upper(TOT),upper(handles.names));
-
-idxred=index(find(handles.crc_types(index)<-1));
-idxblue=index(find(handles.crc_types(index)>-2));
-
-xred=handles.pos(1,idxred);
-yred=handles.pos(2,idxred);
-
-xblu=handles.pos(1,idxblue);
-yblu=handles.pos(2,idxblue);
-
-cleargraph(handles);
-
-if  or(length(xblu)~=0,length(xred) ~=0)
-    hold on
-    plot(xred,yred,'r+'), plot(xblu,yblu,'b+')
-    hold off  
-end
-xlim([0 1])
-ylim([0 1])
-
-set(handles.Localizer,'XTick',[]);
-set(handles.Localizer,'YTick',[]);
-% To avoid warning if there no more available or Selected channels
-set(handles.list_selected,'Value',1);
-set(handles.list_available,'Value',1);
-% Indicate this selection doesn't come from an selection uploaded
-set(handles.Save,'Value',0);
-set(handles.load,'Value',0);
-% Update handles structure
-guidata(hObject, handles);
-
-% --- Executes on button press in selectMEG.
-function selectMEG_Callback(hObject, eventdata, handles)
-% hObject    handle to selectMEG (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-H = get(gcf);
-megval = get(handles.selectMEG,'Value');
-YET = get(handles.list_selected,'String');
-ALL = upper(chanlabels(handles.Dmeg{1})); 
-MEG = upper(chanlabels(handles.Dmeg{1}, handles.indmeg));
-len = length(MEG);
-if megval
-    prompt={['Indicate in how many parts you want divide this set if there are ',num2str(len),' MEG channels:'],...
-        'Indicate which part you want to see : '};
-        name='Select the Signal';
-        numlines=1;
-        defaultanswer={'1','1'};
-    answer=inputdlg(prompt,name,numlines,defaultanswer); 
-    if isempty(answer)
-        TOT = YET; 
-        set(handles.selectMEG,'Value',0);
-    else
-    answernbr = str2double(answer);
-    total = length(MEG);
-    n = answernbr (1);
-    i = answernbr (2);
-    if n > total
-        h = msgbox ('There is not enough MEG channels to divide by this number , by default all the channels will be selected'); 
-    elseif i>n
-        h = msgbox ('You can''t do this, by default all the channels will be selected');
-    else
-        MEG = MEG(ceil(total/n)*(i-1)+1 : ceil(total/n)*i); 
-    end
-    TOT = [YET' MEG];
-    end
-else 
-    MEG = intersect(upper(YET),upper(MEG));
-    TOT = setdiff(YET,MEG);
-end
-%set(0,'CurrentFigure',H);
-OTHER = setdiff(ALL,TOT);
-set(handles.list_selected,'String',TOT);
-set(handles.list_available,'String',OTHER);
-
-[dumb1,dumb2,index]=intersect(upper(TOT),upper(handles.names));
-
-idxred=index(find(handles.crc_types(index)<-1));
-idxblue=index(find(handles.crc_types(index)>-2));
-
-xred=handles.pos(1,idxred);
-yred=handles.pos(2,idxred);
-
-xblu=handles.pos(1,idxblue);
-yblu=handles.pos(2,idxblue);
-
-cleargraph(handles)
-hold on
-plot(xred,yred,'r+'), plot(xblu,yblu,'b+')
-hold off
-if and(length(xblu)==0,length(xred)==0)
-    cleargraph(handles)
-end
-
-xlim([0 1])
-ylim([0 1])
-
-set(handles.Localizer,'XTick',[]);
-set(handles.Localizer,'YTick',[]);
-% To avoid warning if there no more available or Selected channels
-set(handles.list_selected,'Value',1);
-set(handles.list_available,'Value',1);
-% Indicate this selection doesn't come from an selection uploaded
-set(handles.Save,'Value',0);
-set(handles.load,'Value',0);
-% Update handles structure
-guidata(hObject, handles);
-
-% --- Executes on button press in selectMEGPLAN.
-function selectMEGPLAN_Callback(hObject, eventdata, handles)
-% hObject    handle to selectMEGPLAN (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-H = get(gcf);
-megplanval = get(handles.selectMEGPLAN,'Value');
-YET = get(handles.list_selected,'String');
-ALL = upper(chanlabels(handles.Dmeg{1}));
-MEGPLAN = upper(chanlabels(handles.Dmeg{1}, handles.indmegplan));
-len = length(MEGPLAN);
-if megplanval
-    prompt={['Indicate in how many parts you want divide this set if there are ',num2str(len),' MEGPLANAR channels: '],...
-        'Indicate which part you want to see : '};
-        name='Select the Signal';
-        numlines=1;
-        defaultanswer={'1','1'};
-    answer=inputdlg(prompt,name,numlines,defaultanswer);
-    if isempty(answer)
-        TOT = YET; 
-        set(handles.selectMEGPLAN,'Value',0)
-    else  
-    answernbr = str2double(answer);
-    total = length(MEGPLAN);
-    n = answernbr (1);
-    i = answernbr (2);
-    if n > total
-    h = msgbox ('There is not enough MEGPLANAR channels to divide by this number , by default all the channels will be selected'); 
-    elseif i>n
-    h = msgbox ('You can''t do this, by default all the channels will be selected');
-    else
-    MEGPLAN = MEGPLAN(ceil(total/n)*(i-1)+1 : ceil(total/n)*i); 
-    end
-    TOT = [YET' MEGPLAN];
-    end
-else 
-    MEGPLAN = intersect(upper(YET),upper(MEGPLAN));
-    TOT = setdiff(YET,MEGPLAN);
-end
-%set(0,'CurrentFigure',H);
-OTHER = setdiff(ALL,TOT);
-set(handles.list_selected,'String',TOT);
-set(handles.list_available,'String',OTHER);
-
-[dumb1,dumb2,index]=intersect(upper(TOT),upper(handles.names));
-
-idxred=index(find(handles.crc_types(index)<-1));
-idxblue=index(find(handles.crc_types(index)>-2));
-
-xred=handles.pos(1,idxred);
-yred=handles.pos(2,idxred);
-xblu=handles.pos(1,idxblue);
-yblu=handles.pos(2,idxblue);
-
-cleargraph(handles)
-hold on
-plot(xred,yred,'r+'), plot(xblu,yblu,'b+')
-hold off
-if and(length(xblu)==0,length(xred)==0)
-    cleargraph(handles)
-end
-
-xlim([0 1])
-ylim([0 1])
-
-set(handles.Localizer,'XTick',[]);
-set(handles.Localizer,'YTick',[]);
-% To avoid warning if there no more available or Selected channels
-set(handles.list_selected,'Value',1);
-set(handles.list_available,'Value',1);
-% Indicate this selection doesn't come from an selection uploaded
-set(handles.Save,'Value',0);
-set(handles.load,'Value',0);
-% Update handles structure
-guidata(hObject, handles);
-
-
-% --- Executes on button press in fctother.
-function other_Callback(hObject, eventdata, handles)
-% hObject    handle to fctother (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-fcto = get(handles.fctother,'Value');
-YET = get(handles.list_selected,'String');
-DYET = get(handles.list_available,'String');
-if fcto == 1
-    if ~isempty(YET)
-        ADD = setdiff(YET,handles.namother');
-        SEL = [YET ; ADD];
-    else 
-        SEL = handles.namother';
-    end 
-    if ~isempty(DYET)
-        DES = setdiff(DYET, handles.namother)';
-    else 
-        beep
-        fprintf('There is no more channel')
-    end
-else 
-    if ~isempty(YET)
-        SEL = setdiff(YET, handles.namother);
-    else 
-        SEL = cell(0);
-    end 
-    if ~isempty(DYET)
-        ADD = setdiff(DYET,handles.namother);
-        DES = [ADD'; handles.namother'];
-    else 
-         DES = [handles.namother];
-    end
-end 
-set(handles.list_selected,'String',SEL);
-set(handles.list_available,'String',DES);
-
-[dumb1,dumb2,index]=intersect(upper(SEL),upper(handles.names));
-
-idxred=index(find(handles.crc_types(index)<-1));
-idxblue=index(find(handles.crc_types(index)>-2));
-
-xred=handles.pos(1,idxred);
-yred=handles.pos(2,idxred);
-xblu=handles.pos(1,idxblue);
-yblu=handles.pos(2,idxblue);
-
-cleargraph(handles)
-hold on
-plot(xred,yred,'r+'), plot(xblu,yblu,'b+')
-hold off
-if and(length(xblu)==0,length(xred)==0)
-    cleargraph(handles)
-end
-
-xlim([0 1])
-ylim([0 1])
-
-set(handles.Localizer,'XTick',[]);
-set(handles.Localizer,'YTick',[]);
-
-% To avoid warning if there no more available or Selected channels
-set(handles.list_selected,'Value',1);
-set(handles.list_available,'Value',1);
-% Indicate this selection doesn't come from an selection uploaded
-set(handles.Save,'Value',0);
-set(handles.load,'Value',0);
-% Update handles structure
-guidata(hObject, handles);
-
 
 % Hint: get(hObject,'Value') returns toggle state of fctother
 % --- Executes on button press in desall.
@@ -728,13 +392,8 @@ function desall_Callback(hObject, eventdata, handles)
 % hObject    handle to desall (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-set(handles.selectEEG,'Value',0);
-set(handles.selectMEG,'Value',0);
-set(handles.selectMEGPLAN,'Value',0);
-set(handles.fctother,'Value',0);
 set(handles.list_available,'String',upper(chanlabels(handles.Dmeg{1})));
 set(handles.list_selected,'String',cell(0));
-set(handles.fctother,'Value',0);
 cleargraph(handles)
 xlim([0 1])
 ylim([0 1])
@@ -983,3 +642,12 @@ set(handles.Localizer,'XTick',[]);
 set(handles.Localizer,'YTick',[]);
 
 set(handles.load,'Value',0)
+
+
+% --- Executes on button press in backmain.
+function backmain_Callback(hObject, eventdata, handles)
+% hObject    handle to backmain (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+delete(handles.figure1)
+csg_menu
