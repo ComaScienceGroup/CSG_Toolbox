@@ -85,7 +85,7 @@ function csg_mainprepro_Callback(hObject, eventdata, handles)
 % hObject    handle to csg_mainprepro (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-csg_preprocessing
+csg_prepload;
 
 % --- Executes on button press in spectanalysis.
 function spectanalysis_Callback(hObject, eventdata, handles)

@@ -1,8 +1,4 @@
-function Dprep = CSG_preprocessing
-
-% Complete preprocessing
-clear;
-clc;
+function Dprep = CSG_preprocessing(varargin)
 
 %% Convert to the SPM format 
 S.dataset = spm_select(1,'any','Select raw data file');
