@@ -97,10 +97,9 @@ handles.chan        =   [];
 % diplay of artefacts detected with the CSG method developed by coppieters in 2016 FOR egi 256
 % CHANNELS
 handles.badepoch = [];
-if isfield(D,'CSG') && isfield(D.CSG,'artefact') && isfield(D.CSG.artefact,'badchannels') 
-    if isfield(D.CSG.artefact.badchannels,'smallepochs')
-        handles.badepochinfo = D.CSG.artefact.badchannels.info.epoch;
-        handles.badepoch = D.CSG.artefact.badchannels.smallepochs;
+if isfield(D,'CSG') && isfield(D.CSG,'preprocessing')
+    if isfield(D.CSG.preprocessing,'artefact')
+        handles.badepoch = D.CSG.preprocessing.artefact;
     end
 end
 handles.chanlab = meegchannels(D);
@@ -1685,10 +1684,10 @@ function clean_epoch_onechan_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 chan = ceil((handles.Mouse(1,2)-handles.scale/2)/handles.scale);
-time = ceil(handles.Mouse(1,1)/handles.badepochinfo);
+time = ceil(handles.Mouse(1,1));
 channel     =   handles.inddis(chan);
-handles.badepoch{time} = setdiff(handles.badepoch{time},channel);
-handles.Dmeg{1}.CSG.artefact.badchannels.smallepochs = handles.badepoch;
+handles.badepoch(time,channel) = 0;
+handles.Dmeg{1}.CSG.preprocessing.badchannels.incoherent = handles.badepoch;
 save(handles.Dmeg{1});
 % Update handles structure
 guidata(hObject, handles);
@@ -1698,9 +1697,9 @@ function clean_epoch_allchan_Callback(hObject, eventdata, handles)
 % hObject    handle to clean_epoch_allchan (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-time = ceil(handles.Mouse(1,1)/handles.badepochinfo);
-handles.badepoch{time} = [];
-handles.Dmeg{1}.CSG.artefact.badchannels.smallepochs = handles.badepoch;
+time = ceil(handles.Mouse(1,1));
+handles.badepoch(time,:) = [];
+handles.Dmeg{1}.CSG.preprocessing.badchannels.incoherent = handles.badepoch;
 save(handles.Dmeg{1});
 % Update handles structure
 guidata(hObject, handles);
@@ -1712,10 +1711,10 @@ function remove_epoch_onechan_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 chan = ceil((handles.Mouse(1,2)-handles.scale/2)/handles.scale);
-time = ceil(handles.Mouse(1,1)/handles.badepochinfo);
+time = ceil(handles.Mouse(1,1));
 channel     =   handles.inddis(chan);
-handles.badepoch{time} = union(handles.badepoch{time},channel);
-handles.Dmeg{1}.CSG.artefact.badchannels.smallepochs = handles.badepoch;
+handles.badepoch(time,channel) = 1;
+handles.Dmeg{1}.CSG.preprocessing.badchannels.incoherent = handles.badepoch;
 save(handles.Dmeg{1});
 % Update handles structure
 guidata(hObject, handles);
@@ -1725,9 +1724,9 @@ function remove_epoch_allchan_Callback(hObject, eventdata, handles)
 % hObject    handle to remove_epoch_allchan (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-time = ceil(handles.Mouse(1,1)/handles.badepochinfo);
-handles.badepoch{time} = handles.indeeg;
-handles.Dmeg{1}.CSG.artefact.badchannels.smallepochs = handles.badepoch;
+time = ceil(handles.Mouse(1,1));
+handles.badepoch(time, handles.indeeg) = 1;
+handles.Dmeg{1}.CSG.preprocessing.badchannels.incoherent = handles.badepoch;
 save(handles.Dmeg{1});
 % Update handles structure
 guidata(hObject, handles);
@@ -2238,14 +2237,14 @@ for i=1:maxi
         end    
 
         %artefacts on single channel OVER handles.badchaninfo length
-        if  ~isempty(handles.badepoch)
-            ce = unique([ceil(temps(2)/handles.badepochinfo) : ceil(temps(end)/handles.badepochinfo)]);
+        if  any(handles.badepoch)
+            ce = unique([ceil(temps(2)) : ceil(temps(end))]);
             for ice = 1 : numel(ce)
-                badepoch = handles.badepoch{ce(ice)};                    
+                badepoch = find(handles.badepoch(ce(ice),:));                    
                 if ~isempty(badepoch) && ~isempty(intersect(badepoch,index(j))) 
                     X   =   get(plt,'YData');
-                    deb =  max(1,((ce(ice)-1)*handles.badepochinfo - temps(1))*fsample(handles.Dmeg{1})+1); %1=temps d'une époque artefactée
-                    fin =  min(temps(end)*fsample(handles.Dmeg{1}),min(nsamples(handles.Dmeg{1}),ce(ice)*handles.badepochinfo*fsample(handles.Dmeg{1})))-temps(1)*fsample(handles.Dmeg{1});
+                    deb =  max(1,((ce(ice)-1) - temps(1))*fsample(handles.Dmeg{1})+1); %1=temps d'une époque artefactée
+                    fin =  min(temps(end)*fsample(handles.Dmeg{1}),min(nsamples(handles.Dmeg{1}),ce(ice)*fsample(handles.Dmeg{1})))-temps(1)*fsample(handles.Dmeg{1});
                     time_epo = [deb : fin]./fsample(handles.Dmeg{1})+temps(1);
                     X   =   X(deb:fin);%fs est le nombre d'échantillons contenus dans une seconde
                     plot(time_epo,X,'color','r');

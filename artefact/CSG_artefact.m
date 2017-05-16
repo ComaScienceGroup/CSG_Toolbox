@@ -10,18 +10,21 @@ function D = CSG_artefact(cfg)
 % interpolation)
 % °.channels;   : channels to be analyzed
 
+
 if ~isempty(cfg)
     D           =   cfg.dataset;
     epoch       =   cfg.epoch;
     winsize     =   cfg.winsize;
     badchannels =   cfg.badchannels;
     channels    =   cfg.channels; % numero de channels
+    signals     =   cfg.signals;  % signals is a matrix Nchan x Nwin x Lwin, win, is the fix time window used in badchannel detection
 else 
     error('Configuration missing !!!!!!!!!!! \n')
 end
 
 % Fix thresholds chosen
-tr_spc  =   0.2;     % threshold for spatial coherence: signals have to be coherent within a distance of tr_spc
+def     =   csg_get_defaults;
+tr_spc  =   def.qc.bc.spt;     % threshold for spatial coherence: signals have to be coherent within a distance of tr_spc
 
 % load montage
 coord    =   coor2D(D,channels);
@@ -34,66 +37,76 @@ Dchan	=   DC_distance(coord');
 fs      =   fsample(D);
 nspl    =   nsamples(D);
 Nchan   =   numel(channels);
-Nepo    =   ceil(nspl/fs/epoch);
+Lepo    =   epoch*fs;
+Nepo    =   ceil(nspl/Lepo);
+L05     =   fs*0.5;
+N05     =   ceil(Lepo/L05); 
 
 % initialization
-zMatrx      =   NaN(Nepo,Nchan);
-zMatrx2     =   NaN(Nepo,Nchan);
-A           =   NaN(Nepo,Nchan);
-badchan     =   cell(1,Nepo);
-Tempo_std   =   std(D(:,1:epoch*fs),[],2);
+zMatrx      =   zeros(Nepo,Nchan);
+zMatrx2     =   zeros(Nepo,Nchan);
+A           =   zeros(Nepo,Nchan);
+badchan     =   zeros(Nepo,Nchan);
 
+% reshape the data by epoch 
+epochs  =   csg_reshape(signals,Nchan,Nepo,Lepo,nspl); % epochs = Nchan x Nepo x Lepo 
 
-fprintf(1,'BAD CHANNELS detection over small %d sec-epochs \n', epoch);
-fprintf(1,'================================================\n');
+% initialize the std value
+Tempo_std   =   mean(std(epochs,[],3),2);
+
+fprintf(1,'Bad Channels detection over small %d sec-epochs \n', epoch);
 
 for iw  =   2  :    Nepo
-    fprintf('.')
-    twin    =   (iw-1)*fs*epoch+1:min(nspl,iw*epoch*fs);
-    iwin    =   ceil(iw/(winsize/epoch));
-    if numel(badchannels{iwin}(:))  >   0.5*Nchan % when more than 50% of channels considered as bad, all channels are 'removed'
-        badchan{iw} = channels;
+    % search if badchannel has previously been detected
+    iwin    =   ceil(iw/(winsize/epoch));    
+    if numel(find(badchannels(iwin,:)))  >   0.5*Nchan % if more than 50% of channels considered as bad, all channels are 'removed'
+        badchan(iw,:) = 1;
     else 
         for ichan   =   1 : Nchan
         %%  incoherence: kinds of z score computed from small areas for each channel
-            chan_around     =   setdiff(channels(Dchan(ichan,:)<tr_spc),[channels(ichan(:)); badchannels{iwin}(:)]);
-            if numel(chan_around)>1
-                Dmean = mean(D(chan_around,twin));
+            chan_around         =   and(Dchan(ichan,:)<tr_spc,~badchannels(iwin,:));
+            chan_around(ichan)  = 0; 
+            if numel(find(chan_around)) == 0
+                error('The density of EEG is insufficient')
+            end
+            sig = epochs(ichan,iw,:);
+            sigaround = epochs(chan_around,iw,:);
+            if size(sigaround,1)>1
+                Dmean = mean(sigaround);
             else 
-                Dmean = D(chan_around,twin);
+                Dmean = Df;
             end
-            zsc = std(D(channels(ichan),twin)-Dmean)/std(Dmean);
-            zMatrx(iw,ichan)= zsc;
+            SDan    =   std(sig);
+            zsc     =   mean((sig-Dmean))/std(Dmean);
+            zMatrx(iw,ichan)    =   zsc;
          %% kinds of zscore over small fix time windows on a same channel
-            zsc2 = std(D(channels(ichan),twin));
-            zMatrx2(iw,ichan)= zsc2/Tempo_std(channels(ichan));
-            if zsc2/Tempo_std(channels(ichan))<3
-               Tempo_std(channels(ichan)) = zsc2;
-            end  
-         %% popping2: compute the maximal slope over small epoch for each channel
-            t05 = [1 : 0.5*fs];
-            slope = zeros(1,floor(numel(twin)/fs*2));
-            for i05 = 1 : floor(numel(twin)/fs*2)
-                [Vmax imax] = max(D(channels(ichan),t05),[],2);
-                [Vmin imin] = min(D(channels(ichan),t05),[],2);
-                slope(i05) = (Vmax-Vmin)/(abs(imax-imin)/fs); 
-                t05 = t05 + 0.5*fs;
-            end
-            A(iw,ichan) = max(slope);
+            zMatrx2(iw,ichan)   =   SDan/Tempo_std(ichan);
+            if and(abs(SDan/Tempo_std(ichan))<3, abs(SDan/Tempo_std(ichan))>1)
+               Tempo_std(ichan)  =  SDan;
+            end   
+            chantoremove    =   or(abs(zMatrx(iw,:)>3),abs(zMatrx2(iw,:)>3));
+            if numel(find(chantoremove))>0.5*Nchan
+                badchan(iw,:) = 1;
+            else 
+                badchan(iw,chantoremove) = 1;
+            end 
         end
-        chantoremove = channels(or(abs(zMatrx(iw,:)>3),abs(zMatrx2(iw,:)>3)));
-        if numel(chantoremove)>0.5*Nchan
-            badchan{iw} = channels;
-        else 
-            badchan{iw} = chantoremove;
-        end 
+        %% popping2: compute the maximal slope over small epoch for each channel
+        shortsig   = csg_reshape(epochs(:,iw,:),Nchan,N05,L05,size(epochs,3));  
+        slope   = zeros(Nchan,N05);
+        for i05 = 1 : N05
+            [Vmax imax] = max(shortsig(:,i05,:),[],3);  % max over time for each channel
+            [Vmin imin] = min(shortsig(:,i05,:),[],3);  % min over time for each channel
+            slope(:,i05) = (Vmax-Vmin)./(abs(imax-imin)/fs); 
+        end
+        A(iw,:) = max(slope,[],2);
     end
 end
-
+% 
 abn = cell(1,Nchan);
 for ichan = 1 : Nchan
-    speedchan = A(:,ichan);
-    newabn = find(abs(zscore(speedchan))>3);
+    speedchan   = A(:,ichan);
+    newabn      = find(abs(zscore(speedchan))>3);
     count = 0;
     while ~isempty(newabn) && count <= 3
         speedchan(abn{ichan}) = 0;
@@ -110,19 +123,18 @@ fprintf('.\n')
 for ichan = 1 : Nchan
     badepo = abn{ichan};
     for ibe = 1 : numel(badepo)
-        badchan{badepo(ibe)} = union(badchan{badepo(ibe)},channels(ichan));
+        badchan(badepo(ibe),ichan) = 1;
     end
 end
 for iw = 1 : Nepo
-    if numel(badchan{iw})>0.5*Nchan
-        badchan{iw} = channels;
+    if numel(find(badchan(iw,:)))>0.5*Nchan
+        badchan(iw,:) = 1;
     end
 end
 
 %% test 
 fprintf(1,'---Bad epochs detection --- DONE---\n')
-D.CSG.artefact.badchannels.smallepochs = badchan;
-D.CSG.artefact.badchannels.info.epoch  = epoch;
+D.CSG.preprocessing.badchannels.incoherent = badchan;
 save(D);
 
 %%%%

@@ -22,7 +22,7 @@ function varargout = csg_prepromenu(varargin)
 
 % Edit the above text to modify the response to help csg_prepromenu
 
-% Last Modified by GUIDE v2.5 10-May-2017 13:02:51
+% Last Modified by GUIDE v2.5 11-May-2017 10:24:55
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -57,6 +57,9 @@ function csg_prepromenu_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 handles.Dmeg = varargin{1}.Dmeg;
 handles.Nfiles = varargin{1}.Nfiles;
+
+% load defaults values
+handles.def = csg_get_defaults;
 
 % initialization of the rereferencing list
 if handles.Nfiles>1
@@ -226,30 +229,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-
-function ecgabv_Callback(hObject, eventdata, handles)
-% hObject    handle to ecgabv (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of ecgabv as text
-%        str2double(get(hObject,'String')) returns contents of ecgabv as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function ecgabv_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to ecgabv (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
 function emgblw_Callback(hObject, eventdata, handles)
 % hObject    handle to emgblw (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -303,15 +282,26 @@ function AADopt_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of AADopt
 
-
+if get(hObject,'Value')
+    set(handles.Lwinopt,'Enable','on')
+    set(handles.detcohopt,'Enable','on')
+    set(handles.interpollarge,'Enable','on')
+else 
+    set(handles.Lwinopt,'Enable','off')
+    set(handles.detcohopt,'Enable','off')
+    set(handles.interpollarge,'Enable','off')    
+    set(handles.interpolsmall,'Enable','off')
+    set(handles.detcohopt,'Value',0)
+    set(handles.Swinopt,'Enable','off')
+end
 
 function Explanations_Callback(hObject, eventdata, handles)
 % hObject    handle to Explanations (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of Lwinopt as text
-%        str2double(get(hObject,'String')) returns contents of Lwinopt as a double
+% Hints: get(hObject,'String') returns contents of detstdopt as text
+%        str2double(get(hObject,'String')) returns contents of detstdopt as a double
 
 
 % --- Executes during object creation, after setting all properties.
@@ -331,8 +321,8 @@ function Explanationreref_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of Lwinopt as text
-%        str2double(get(hObject,'String')) returns contents of Lwinopt as a double
+% Hints: get(hObject,'String') returns contents of detstdopt as text
+%        str2double(get(hObject,'String')) returns contents of detstdopt as a double
 
 
 % --- Executes during object creation, after setting all properties.
@@ -356,7 +346,13 @@ function rerefopt_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of rerefopt
 
-
+if get(hObject,'Value')
+    set(handles.reflist,'Enable','on')
+    set(handles.reflist,'Position',[15.429 0.6-3.7 25.429 5])
+else 
+    set(handles.reflist,'Enable','off')    
+    set(handles.reflist,'Position',[15.429 0.6 25.429 1.35])
+end
 
 function Swinopt_Callback(hObject, eventdata, handles)
 % hObject    handle to Swinopt (see GCBO)
@@ -387,7 +383,14 @@ function detcohopt_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of detcohopt
-
+if  get(hObject,'Value')
+    set(handles.interpolsmall,'Enable','on')
+    set(handles.Swinopt,'Enable','on')
+else 
+    set(handles.interpolsmall,'Enable','off')
+    set(handles.Swinopt,'String',num2str(handles.def.qc.bc.Swin))
+    set(handles.Swinopt,'Enable','off')
+end
 
 % --- Executes on button press in interpolsmall.
 function interpolsmall_Callback(hObject, eventdata, handles)
@@ -409,7 +412,7 @@ function interpollarge_Callback(hObject, eventdata, handles)
 
 
 function Lwinopt_Callback(hObject, eventdata, handles)
-% hObject    handle to Lwinopt (see GCBO)
+% hObject    handle to detstdopt (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -419,7 +422,7 @@ function Lwinopt_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function Lwinopt_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Lwinopt (see GCBO)
+% hObject    handle to detstdopt (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -467,26 +470,93 @@ function runpreproc_Callback(hObject, eventdata, handles)
 % hObject    handle to runpreproc (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+cfg.filtpar.eegblw = [];
+cfg.filtpar.eegabv = [];
+cfg.filtpar.ecgblw = [];
+cfg.filtpar.ecgabv = [];
+cfg.filtpar.emgblw = [];
+cfg.filtpar.emgabv = [];
+cfg.filtpar.eogblw = [];
+cfg.filtpar.eogabv = [];
 if get(handles.filtopt,'Value')
-    filtpar.eegblw = str2num(get(handles.eegblw,'String'));
-    filtpar.eegabv = str2num(get(handles.eegabv,'String'));
-    filtpar.ecgblw = str2num(get(handles.ecgblw,'String'));
-    filtpar.ecgabv = str2num(get(handles.ecgabv,'String'));
-    filtpar.emgblw = str2num(get(handles.emgblw,'String'));
-    filtpar.emgabv = str2num(get(handles.emgabv,'String'));
-    filtpar.eogblw = str2num(get(handles.eogblw,'String'));
-    filtpar.eogabv = str2num(get(handles.eogabv,'String'));
+    cfg.filtpar.eegblw = str2num(get(handles.eegblw,'String'));
+    cfg.filtpar.eegabv = str2num(get(handles.eegabv,'String'));
+    cfg.filtpar.ecgblw = str2num(get(handles.ecgblw,'String'));
+    cfg.filtpar.ecgabv = str2num(get(handles.ecgabv,'String'));
+    cfg.filtpar.emgblw = str2num(get(handles.emgblw,'String'));
+    cfg.filtpar.emgabv = str2num(get(handles.emgabv,'String'));
+    cfg.filtpar.eogblw = str2num(get(handles.eogblw,'String'));
+    cfg.filtpar.eogabv = str2num(get(handles.eogabv,'String'));
 end
+cfg.Lwin        = [];
+cfg.Swin        = [];
+cfg.Linterpo    = [];
+cfg.Sinterpo    = [];
 if get(handles.AADopt,'Value')
-    Lwin = str2num(get(handles.Lwinopt,'String'));
-    Swin = str2num(get(handles.Swinopt,'String'));
-    Linterpo = get(handles.interpollarge,'Value');
-    Sinterpo = get(handles.interpolsmall,'Value');
+    cfg.Lwin = str2num(get(handles.Lwinopt,'String'));
+    cfg.Swin = str2num(get(handles.Swinopt,'String'));
+    cfg.Linterpo = get(handles.interpollarge,'Value');
+    cfg.Sinterpo = get(handles.interpolsmall,'Value');
 end
+cfg.incoh = get(handles.detcohopt,'Value');
+cfg.ref = [];
 if get(handles.rerefopt,'Value')
-    ref = get(handles.reflist,'String');
+    cfg.ref = get(handles.reflist,'String');
 end
+
+
+for i = 1 : handles.Nfiles
+    dirfile = path(handles.Dmeg{i});
+    filesindir = ls(dirfile);
+    warningname = 0;
+    % check for each file if this file has already been preprocessed
+    for j = 1 : size(filesindir,1) 
+        cfg.filename = fnamedat(handles.Dmeg{i});
+        if strcmp(deblank(filesindir(j,:)),['P_' fname(handles.Dmeg{i})])
+            warningname = j;
+               prompt={'These data seem to have been already processed !!! Choose a new name for this preprocessed file: '};
+               name='Preprocessed file';
+               numlines=1;
+               defaultanswer={['?_' fname(handles.Dmeg{i})]};
+               answer = inputdlg(prompt,name,numlines,defaultanswer);
+               options.Resize='on';
+               options.WindowStyle='normal';
+               options.Interpreter='tex';
+               
+               if strcmp(answer,['P_' fname(handles.Dmeg{i})])
+                    ButtonName = questdlg('This new process will erase the previous one! Are you sure that you want to preserve this name?', ...
+                    'Warning', ...
+                       'Yes', 'No', 'No');
+                     switch ButtonName,
+                       case 'Yes',
+                            disp('You decided to keep the same name of the previous preprocessed file.');
+                            disp(['This new process will be saved in the file: ', char(['P_' fname(handles.Dmeg{i})])]);
+                       case 'No',
+                            prompt={'Choose a new name for this preprocessed file: '};
+                            name='Preprocessed file';
+                            numlines=1;
+                            defaultanswer={['?_' fname(handles.Dmeg{i})]};
+                            answer = inputdlg(prompt,name,numlines,defaultanswer);
+                     end 
+                     
+               end
+               if ~isempty(answer)
+                   cfg.preproname = answer;
+ 
+               else 
+                   return;
+               end
+        end 
+    end
+    if ~warningname
+        cfg.preproname = ['P_' fname(handles.Dmeg{i})];        
+    end  
+    % run the preprocessing
+    disp(['The preprocessing of ', char(cfg.preproname)])
+    csg_preprocessing(cfg);
+end
+
+
 
 function edit21_Callback(hObject, eventdata, handles)
 % hObject    handle to edit21 (see GCBO)
