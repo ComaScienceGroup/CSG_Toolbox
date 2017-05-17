@@ -68,22 +68,8 @@ handles.crc_types = crc_types;
 
 if isempty(varargin) || ~isfield(varargin{1},'file')
     % Filter for vhdr, mat and edf files
-    try and(isfield(varargin{1},'multcomp'), varargin{1}.multcomp)
-        %if the multiple comparison option is checked
-        prefile = spm_select(Inf, 'any', 'Select imported EEG file','' ...
-            ,pwd,'\.[mMvVeErR][dDhHaA][fFDdTtwW]');
-        set(handles.Selectall,'enable','off','visible','off');
-        set(handles.desall,'enable','off','visible','off');
-        set(handles.Score,'enable','off','visible','off');
-        set(handles.text4,'visible','off');
-        set(handles.text5,'visible','off');
-        set(handles.Save,'visible','off');
-        handles.multcomp=1;
-    catch
-        prefile = spm_select(1, 'any', 'Select imported EEG file','' ...
-            ,pwd,'\.[mMvVeErR][dDhHaA][fFDdTtwW]');
-        handles.multcomp=0;
-    end
+    prefile = spm_select(1, 'any', 'Select imported EEG file','' ...
+        ,pwd,'\.[mMvVeErR][dDhHaA][fFDdTtwW]');
     for i=1:size(prefile,1)
         D{i} = crc_eeg_load(deblank(prefile(i,:)));
         file = fullfile(D{i}.path,D{i}.fname);
@@ -519,14 +505,6 @@ eeg = [eeg2 neweeg];
 
 idx = [otherknown othernotknown ECGchan EMGchan EOGchan eeg];
 
-%%%%%%%%%%%%%%%
-function cleargraph(handles)
-
-A=get(handles.figure1,'Children');
-idx=find(strcmp(get(A,'Type'),'axes')==1);
-try
-    delete(get(A(idx),'Children'))
-end
 
 function edit1_Callback(hObject, eventdata, handles)
 % hObject    handle to edit1 (see GCBO)
@@ -574,6 +552,7 @@ for i = 1 : length(data)
 end
 fprintf(['This selection is saved under the name:', char(filename)]);
 fclose(file);
+
 % --- Executes on button press in loadselection.
 function loadselection_Callback(hObject, eventdata, handles)
 % hObject    handle to load (see GCBO)
@@ -651,3 +630,13 @@ function backmain_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 delete(handles.figure1)
 csg_menu
+
+
+%%%%%%%%%%%%%%%
+function cleargraph(handles)
+
+A=get(handles.figure1,'Children');
+idx=find(strcmp(get(A,'Type'),'axes')==1);
+try
+    delete(get(A(idx),'Children'))
+end

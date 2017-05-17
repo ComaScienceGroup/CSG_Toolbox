@@ -1,4 +1,4 @@
-function [newD cleaned] = csg_interpol(cfg)
+function [D cleaned] = csg_interpol(cfg)
 
 % csg_interpol interpolate bad channels detected over fix time windows when less than 50% of all channels considered are bad.
 % The new file with interpolated channels is renamed by simply adding a 'I' as prefix.
@@ -21,31 +21,24 @@ function [newD cleaned] = csg_interpol(cfg)
 
 %% load data
 if ~isempty(cfg)
-    D = cfg.dataset;
-    Lw = cfg.winsize;
-    channels = cfg.channels;
+    D           = cfg.dataset;
+    Lw          = cfg.winsize;
+    channels    = cfg.channels;
     badchannels = cfg.badchannels;
 else 
     error('Minimum of configuration is required !!!!!!!!!! \n')
 end
 
 % parameters from the data file loaded
-fs      =   fsample(D);             % sampling frequency
-nspl    =   nsamples(D);            % number of samples
-NofW    =   ceil(nspl/(fs*Lw));     % number of fix time window
-Nchan   =   numel(channels);
-newdata.label   =   chanlabels(D,channels);
+fs          =   fsample(D);             % sampling frequency
+nspl        =   nsamples(D);            % number of samples
+Lwin        =   fs*Lw;
+NofW        =   ceil(nspl/Lwin);     % number of fix time window
+Nchan       =   numel(channels);
+data.label  =   chanlabels(D,channels);
 
 data        =   spm2fieldtrip(D);   % transform meeg object from spm into a raw data of fieldtrip
-newdata     =   data;               % new raw data with interpolated values 
-filename    =   fnamedat(D);
-[pth, fname]    =   fileparts(filename);
-newname     =   ['I' fname];
-newfilename =   fullfile(pth,newname);
-
-% clone the data 
-newD    =   clone(D,newfilename);
-coord   =   coor2D(D)';
+coord       =   coor2D(D)';
 
 % interpolation: configuration (to be checked, still in progess)
 elec.chanpos    =   [coord zeros(numel(channels),1)];
@@ -53,7 +46,7 @@ elec.elecpos    =   [coord zeros(numel(channels),1)];
 elec.label      =   chanlabels(D,channels); 
 cfglayout.elec  =	elec;
 cfglayout.layout	= 'ordered';
-lay     =   ft_prepare_layout(cfglayout, data);
+lay             =   ft_prepare_layout(cfglayout, data);
 
 cfgneigh.elec   =   elec;
 cfgneigh.method	=   'distance';      % or 'template' (default = 'distance')
@@ -62,29 +55,30 @@ cfg.neighbours  =   ft_prepare_neighbours(cfgneigh, data);
 
 cfg.elec    =   elec; % channels position and labels given from the elec_EGI256.mat file according to the fieldtrip toolbox
 cfg.method  =   ft_getopt(cfg, 'method','spline');
-cfg.lambda  =   ft_getopt(cfg, 'lambda',[]); % subfunction will handle this
-cfg.order   =   ft_getopt(cfg, 'order',[]); % subfunction will handle this
-newD.CSG.interpolation.cfg  =   cfg;
-newD(:,:,1) =   D(:,:,1);
-newdata.label       =   chanlabels(D,channels);
+cfg.lambda  =   ft_getopt(cfg, 'lambda',[]);    % subfunction will handle this
+cfg.order   =   ft_getopt(cfg, 'order',[]);     % subfunction will handle this
+
+D.CSG.preprocessing.info.interpolation  =   cfg;
+
+data.label	=   chanlabels(D,channels);
 
 % loop to search bad channels in each fiw time-window and interpolate bad
 % channels from the method chosen
-cleaned = cell(1,NofW);
+cleaned = zeros(Nchan,NofW);
 for iw = 1 : NofW
     fprintf(1,' \n');
     tempo   =   max(1,(iw-1)*Lw*fs):min(nspl,iw*fs*Lw);
-    if ~isempty(badchannels{iw})
-        if numel(badchannels{iw})<0.5*Nchan 
-            cfg.badchannel      =   chanlabels(D,badchannels{iw});  % bad channel to interpolate
-            newdata.trial{1}    =   D(channels,tempo);
-            newdata.time{1}     =   data.time{1}(:,tempo);       
-            inter               =   ft_channelrepair(cfg,newdata);
-            newD(channels,tempo)  =   inter.trial{1};
-            cleaned{iw} =  badchannels{iw};
+    if any(badchannels(:,iw))
+        if numel(find(badchannels(:,iw)))<0.7*Nchan 
+            cfg.badchannel      =   chanlabels(D,channels(badchannels(:,iw)));  % bad channel to interpolate
+            data.trial{1}       =   D(channels,tempo);
+            data.time{1}        =   data.time{1}(:,tempo);       
+            inter               =   ft_channelrepair(cfg,data);
+            D(channels,tempo)   =   inter.trial{1};
+            cleaned(badchannels(:,iw),iw) = 1;
         end
     end
 end
-fprintf(1,' =========================== \n INTERPOLATION processed  \n ============================= \n ');
-save(newD);
+fprintf(1,' Interpolation done  \n ============================= \n ');
+save(D);
 

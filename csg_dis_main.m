@@ -97,10 +97,9 @@ handles.chan        =   [];
 % diplay of artefacts detected with the CSG method developed by coppieters in 2016 FOR egi 256
 % CHANNELS
 handles.badepoch = [];
-if isfield(D,'CSG') && isfield(D.CSG,'artefact') && isfield(D.CSG.artefact,'badchannels') 
-    if isfield(D.CSG.artefact.badchannels,'smallepochs')
-        handles.badepochinfo = D.CSG.artefact.badchannels.info.epoch;
-        handles.badepoch = D.CSG.artefact.badchannels.smallepochs;
+if isfield(D,'CSG') && isfield(D.CSG,'preprocessing')
+    if isfield(D.CSG.preprocessing,'artefact')
+        handles.badepoch = D.CSG.preprocessing.artefact;
     end
 end
 handles.chanlab = meegchannels(D);
@@ -946,164 +945,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-%--------------------------------------------------------------------------
-%Compute the power spectrum on one or all channels when right click--------
-%--------------------------------------------------------------------------
-
-% --------------------------------------------------------------------
-%function Pwr_spect_Callback(hObject, eventdata, handles)
-
-% hObject    handle to Pwr_spect (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --------------------------------------------------------------------
-%function Cmp_Pwr_Sp_Callback(hObject, eventdata, handles)
-
-% hObject    handle to Cmp_Pwr_Sp (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-%Get which file is selected
-% hand    =   get(handles.axes1,'Children');
-% Mouse   =   get(handles.axes1,'CurrentPoint');
-% Chan    =   ceil((Mouse(1,2)-handles.scale/2)/handles.scale);
-% slidval =   get(handles.slider1,'Value');
-% 
-% if handles.figz~=0
-%     z   =   handles.figz;
-% else
-%     z   =   figure;
-% end
-% figure(z)
-% axs     =   get(handles.figz,'Children');
-% cleargraph(handles.figz) %change made
-% 
-% if handles.multcomp
-%     fil     =   min(max(1,Chan),length(handles.Dmeg));
-%     Ctodis  =	handles.Chantodis;
-%     [dumb1,dumb2,Chan]  =   intersect(handles.chanset{Ctodis}, ...
-%                             upper(chanlabels(handles.Dmeg{fil})));
-%     start   =   datevec(handles.date(fil,1)-handles.mindate);
-%     start   =   start(4)*60^2+start(5)*60+start(6);
-%     beg     =   slidval - start;
-%     tdeb    =   round(beg*fsample(handles.Dmeg{fil}));
-%     temps   =   tdeb:1:min(tdeb+(fsample(handles.Dmeg{fil})*handles.winsize), ...
-%                 nsamples(handles.Dmeg{fil}));
-%     toshow  =   temps;
-%     cmap 	=   hsv(length(handles.Dmeg));
-%     Col     =   fil;
-% else
-%     fil     =   1;
-%     Chan    =   min(max(1,Chan),length(handles.indexMEEG) + length(handles.indnomeeg));
-%     NbreChandisp    =   str2double(get(handles.NbreChan,'String'));
-% 	index           =   [handles.indnomeeg handles.indexMEEG];
-%     Chan            =   index(Chan);
-%     chandis         =   chanlabels(handles.Dmeg{fil},Chan);
-%     fs              =   fsample(handles.Dmeg{fil});
-%     tdeb            =   round(slidval*fs);
-%     temps           =   tdeb:1:min(tdeb+(fs*handles.winsize), ...
-%                         nsamples(handles.Dmeg{fil}));
-%     toshow          =   temps;
-%     cmap            =   [0.2 0.9 0.5; 1 0 0; 0 0 1 ];
-% end
-% 
-% tdeb_w = round(slidval*fs);
-% tend_w = min(tdeb+(fs*handles.winsize), ...
-%                         nsamples(handles.Dmeg{fil}));
-% tohid_all = [];
-% if ~isempty(handles.score{5,handles.currentscore}) 
-%     tdebs   =   str2double(get(handles.currenttime,'String')) - handles.winsize/2;
-%     tfins   =   str2double(get(handles.currenttime,'String')) + handles.winsize/2;
-%     art     =   find(and((or(and(handles.score{5,handles.currentscore}(:,2)>tdebs,handles.score{5,handles.currentscore}(:,2)<tfins),...
-%                 and(handles.score{5,handles.currentscore}(:,1)<tfins,handles.score{5,handles.currentscore}(:,1)>tdebs))),...
-%                 or(handles.score{5,handles.currentscore}(:,3) == 0,handles.score{5,handles.currentscore}(:,3) == Chan)));
-%     art_concerned   =   handles.score{5,handles.currentscore}(art,1:2);
-%     if ~isempty(art_concerned)
-%         a=1;
-%         while a <= size(art_concerned,1)
-%             art_concerned(a);
-%             begart      =   max(tdeb_w,round(art_concerned(a,1)*fs));
-%             endart      =   min(tend_w,round(art_concerned(a,2)*fs)); 
-%             tohid2   	=   begart : endart;
-%             tohid_all   =   union(tohid_all,tohid2);
-%             tdeb_w      =   endart;
-%             a   =  a+1;
-%         end 
-%         toshow 	=   setdiff(toshow,tohid_all);
-%     end 
-% end
-% if length(toshow)<(handles.winsize/2)*fs        %More than 50% of artefacts
-%     h = msgbox('There is too much artefact on this channel');
-%     close(figure(z))
-% else
-%     fs      =   fsample(handles.Dmeg{fil});
-%     leg     =   cell(0);
-%     hold on
-%     [dumb1,dumb2,index2] = ...
-%         intersect(upper(chanlabels(handles.Dmeg{fil},Chan)),handles.names);
-%     if abs(handles.crc_types(index2))>1
-%         if handles.crc_types(index2)>0
-%             [dumb1,index1,dumb2] = ...
-%                 intersect(upper(chanlabels(handles.Dmeg{fil})), ...
-%                 upper(handles.names(handles.crc_types(index2))));
-%             try
-%                 X   =   handles.Dmeg{fil}(Chan,toshow) - ...
-%                         handles.Dmeg{fil}(index1,toshow);
-%                 Col	= 1;
-%             catch
-%                 X   = 0;
-%             end
-%         else
-%             range   =   max(handles.Dmeg{fil}(Chan,toshow)) - ...
-%                         min(handles.Dmeg{fil}(Chan,toshow));
-%             try
-%                 X   = 	(handles.scale)*handles.Dmeg{fil}(Chan,toshow)/range;
-%                 Col =   2;
-%             catch
-%                 X   =   0;
-%             end
-%         end
-%     else
-%         try
-%             X   =   handles.Dmeg{fil}(Chan,toshow);
-%             Col	=   3;
-%         catch
-%             X   =   0;
-%         end
-%     end
-%     if length(X) == 1
-%         text(0.75,1, 'No Signal here')
-%         xlim([0 2])
-%         ylim([0 2])
-%         grid off
-%     else
-%         X       =   filterforspect(handles,X,[0.001 fs/3],fil);
-%         [P,F]   =   pwelch(X,[],[],[],fs);
-%         P       =   log(P);
-%         plot(F,P,'Color',cmap(Col,:))
-%         grid on
-%         titre   =   chandis;
-%         title(titre)
-%         ylabel('Log of power')
-%         xlabel('Frequency in Hz')
-%         [dumb name]     =   fileparts(handles.Dmeg{fil}.fname);
-%         under           =   find(name=='_');
-%         name(under)     =   ' ';
-%         leg{length(leg)+1}  =	name;
-%         legend(leg);
-%         axis auto
-%         xlim([0 20])
-%     end
-% end
-% 
-% handles.figz=z;
-% 
-% % Update handles structure
-% guidata(hObject, handles);
-
 %--------------------------------------------------------------------------
 % Export in a matlab figure------------------------------------------------
 %--------------------------------------------------------------------------
@@ -1685,10 +1526,10 @@ function clean_epoch_onechan_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 chan = ceil((handles.Mouse(1,2)-handles.scale/2)/handles.scale);
-time = ceil(handles.Mouse(1,1)/handles.badepochinfo);
+time = ceil(handles.Mouse(1,1));
 channel     =   handles.inddis(chan);
-handles.badepoch{time} = setdiff(handles.badepoch{time},channel);
-handles.Dmeg{1}.CSG.artefact.badchannels.smallepochs = handles.badepoch;
+handles.badepoch(channel,time) = 0;
+handles.Dmeg{1}.CSG.preprocessing.artefact = handles.badepoch;
 save(handles.Dmeg{1});
 % Update handles structure
 guidata(hObject, handles);
@@ -1698,9 +1539,9 @@ function clean_epoch_allchan_Callback(hObject, eventdata, handles)
 % hObject    handle to clean_epoch_allchan (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-time = ceil(handles.Mouse(1,1)/handles.badepochinfo);
-handles.badepoch{time} = [];
-handles.Dmeg{1}.CSG.artefact.badchannels.smallepochs = handles.badepoch;
+time = ceil(handles.Mouse(1,1));
+handles.badepoch(:,time) = [];
+handles.Dmeg{1}.CSG.preprocessing.artefact = handles.badepoch;
 save(handles.Dmeg{1});
 % Update handles structure
 guidata(hObject, handles);
@@ -1712,10 +1553,10 @@ function remove_epoch_onechan_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 chan = ceil((handles.Mouse(1,2)-handles.scale/2)/handles.scale);
-time = ceil(handles.Mouse(1,1)/handles.badepochinfo);
+time = ceil(handles.Mouse(1,1));
 channel     =   handles.inddis(chan);
-handles.badepoch{time} = union(handles.badepoch{time},channel);
-handles.Dmeg{1}.CSG.artefact.badchannels.smallepochs = handles.badepoch;
+handles.badepoch(channel,time) = 1;
+handles.Dmeg{1}.CSG.preprocessing.artefact = handles.badepoch;
 save(handles.Dmeg{1});
 % Update handles structure
 guidata(hObject, handles);
@@ -1725,9 +1566,9 @@ function remove_epoch_allchan_Callback(hObject, eventdata, handles)
 % hObject    handle to remove_epoch_allchan (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-time = ceil(handles.Mouse(1,1)/handles.badepochinfo);
-handles.badepoch{time} = handles.indeeg;
-handles.Dmeg{1}.CSG.artefact.badchannels.smallepochs = handles.badepoch;
+time = ceil(handles.Mouse(1,1));
+handles.badepoch(handles.indeeg,time) = 1;
+handles.Dmeg{1}.CSG.preprocessing.artefact = handles.badepoch;
 save(handles.Dmeg{1});
 % Update handles structure
 guidata(hObject, handles);
@@ -1899,7 +1740,7 @@ if or(get(handles.figure1,'CurrentCharacter')=='B',get(handles.figure1,'CurrentC
 
     set(handles.slider1,'Value',slidval);
     set(handles.figure1,'CurrentAxes',handles.axes4);
-    if isfield(handles,'pow')
+    if isfield(handles,'pow') && ~isempty(handles.pow)
         csg_powplot(handles.axes4, handles);
     end
     % Goes to next window
@@ -1916,7 +1757,7 @@ elseif or(get(handles.figure1,'CurrentCharacter')=='F',get(handles.figure1,'Curr
     end
     set(handles.slider1,'Value',slidval);
     set(handles.figure1,'CurrentAxes',handles.axes4);
-    if isfield(handles,'pow')
+    if isfield(handles,'pow') && ~isempty(handles.pow)
         csg_powplot(handles.axes4, handles);
     end
 else
@@ -2238,14 +2079,14 @@ for i=1:maxi
         end    
 
         %artefacts on single channel OVER handles.badchaninfo length
-        if  ~isempty(handles.badepoch)
-            ce = unique([ceil(temps(2)/handles.badepochinfo) : ceil(temps(end)/handles.badepochinfo)]);
+        if  any(handles.badepoch)
+            ce = unique([ceil(temps(2)) : ceil(temps(end))]);
             for ice = 1 : numel(ce)
-                badepoch = handles.badepoch{ce(ice)};                    
+                badepoch = find(handles.badepoch(:,ce(ice)));                    
                 if ~isempty(badepoch) && ~isempty(intersect(badepoch,index(j))) 
                     X   =   get(plt,'YData');
-                    deb =  max(1,((ce(ice)-1)*handles.badepochinfo - temps(1))*fsample(handles.Dmeg{1})+1); %1=temps d'une époque artefactée
-                    fin =  min(temps(end)*fsample(handles.Dmeg{1}),min(nsamples(handles.Dmeg{1}),ce(ice)*handles.badepochinfo*fsample(handles.Dmeg{1})))-temps(1)*fsample(handles.Dmeg{1});
+                    deb =  max(1,((ce(ice)-1) - temps(1))*fsample(handles.Dmeg{1})+1); %1=temps d'une époque artefactée
+                    fin =  min(temps(end)*fsample(handles.Dmeg{1}),min(nsamples(handles.Dmeg{1}),ce(ice)*fsample(handles.Dmeg{1})))-temps(1)*fsample(handles.Dmeg{1});
                     time_epo = [deb : fin]./fsample(handles.Dmeg{1})+temps(1);
                     X   =   X(deb:fin);%fs est le nombre d'échantillons contenus dans une seconde
                     plot(time_epo,X,'color','r');
@@ -2278,17 +2119,13 @@ if handles.displevt
 end
 
 %display the labels on the y-axis
-if handles.multcomp
-    li=length(handles.Dmeg);
-else
-    li=length(index);
-end
-
- ylim([0 handles.scale*(li+1)])
- set(handles.axes1,'YTick',[handles.scale/2 :handles.scale/2:li*handles.scale+handles.scale/2]);
- ylabels=[num2str(round(handles.scale/2))];
+li=length(index);
+ylim([0 handles.scale*(li+1)])
+set(handles.axes1,'YTick',[handles.scale/2 :handles.scale/2:li*handles.scale+handles.scale/2]);
+ylabels=[num2str(round(handles.scale/2))];
 
 for j = 1 : li
+    ylabels = [ylabels chanlabels(handles.Dmeg{1},index(j))];
     ylabels = [ylabels num2str(round(handles.scale/2))];
 end
 set(handles.axes1,'YTickLabel',ylabels);
