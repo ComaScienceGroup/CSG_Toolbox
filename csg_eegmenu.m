@@ -92,7 +92,7 @@ function spectanalysis_Callback(hObject, eventdata, handles)
 % hObject    handle to spectanalysis (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+csg_ROI;
 
 % --- Executes on button press in statanalysis.
 function statanalysis_Callback(hObject, eventdata, handles)

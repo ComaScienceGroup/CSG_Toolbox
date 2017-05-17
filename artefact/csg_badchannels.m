@@ -89,8 +89,8 @@ else
 end
 
 % initialization
-chan_def    = zeros(NofW,numel(channels));
-chan_incoh  = zeros(NofW,numel(channels));
+chan_def    =   zeros(numel(channels),NofW);
+chan_incoh  =   zeros(numel(channels),NofW);
 
 % *************************************************************************
 %                    Obviously bad channels detection
@@ -102,10 +102,10 @@ for w = 1 : NofW
    % --- obvious noisy channel
    eeg_an    =   std(signals(:,w,:),[],3); 
    if any(eeg_an >= def_n)
-       chan_incoh(w,eeg_an >= def_n) = 1;
+       chan_incoh(eeg_an >= def_n,w) = 1;
    % --- obvious flat channel
    elseif any(eeg_an <= def_f1) 
-       chan_def(w,eeg_an <= def_f1) = 1;
+       chan_def(eeg_an <= def_f1,w) = 1;
    end
     String  =  ['Progress of bad channels detection 1/2 : ' num2str(w/NofW*100) ' %'];
     waitbar((w/NofW),h,String);
@@ -115,7 +115,7 @@ end
 % *************************************************************************
 
 for w = 1 : NofW
-    good_chan   =   ~or(chan_incoh(w,:),chan_def(w,:));
+    good_chan   =   ~or(chan_incoh(:,w),chan_def(:,w));
     window      =	signals(good_chan,w,:);
     if ~isempty(window)
         st_5epo	=	std(window,[],3); % standard deviation over time for each not obvious bad channels
@@ -130,7 +130,7 @@ for w = 1 : NofW
                 deb = [1 fin(1:end-1)+1];
                 duration_def = (fin - deb)/fs;
                 if duration_def >= def_tf                   
-                    chan_def(w,ich(ic)) = 1;  %artefact de défaillance des électrodes
+                    chan_def(ich(ic),w) = 1;  %artefact de défaillance des électrodes
                 end  
             end
 % ***** noisy channels *****
@@ -140,7 +140,7 @@ for w = 1 : NofW
             eeg_an    =     window(ic,:); 
             intera_std =    abs(std(eeg_an)/std(eeg_oth)); 
             if (intera_std >= def_r)
-               chan_incoh(w,ich(ic)) = 1;  %artefact de défaillance des électrodes
+               chan_incoh(ich(ic),w) = 1;  %artefact de défaillance des électrodes
             end
        end
     end

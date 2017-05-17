@@ -111,7 +111,19 @@ function filtopt_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of filtopt
 
 if get(hObject,'Value')
-    handles.filtering.eegblw = get(handles.eegblw,'String');
+    set(handles.eegblw,'enable','on');
+    set(handles.eegabv,'enable','on');
+    set(handles.eogblw,'enable','on');
+    set(handles.eogabv,'enable','on');
+    set(handles.emgblw,'enable','on');
+    set(handles.emgabv,'enable','on');
+else
+    set(handles.eegblw,'enable','off');
+    set(handles.eegabv,'enable','off');
+    set(handles.eogblw,'enable','off');
+    set(handles.eogabv,'enable','off');
+    set(handles.emgblw,'enable','off');
+    set(handles.emgabv,'enable','off');
 end
 
 
@@ -481,8 +493,6 @@ cfg.filtpar.eogabv = [];
 if get(handles.filtopt,'Value')
     cfg.filtpar.eegblw = str2num(get(handles.eegblw,'String'));
     cfg.filtpar.eegabv = str2num(get(handles.eegabv,'String'));
-    cfg.filtpar.ecgblw = str2num(get(handles.ecgblw,'String'));
-    cfg.filtpar.ecgabv = str2num(get(handles.ecgabv,'String'));
     cfg.filtpar.emgblw = str2num(get(handles.emgblw,'String'));
     cfg.filtpar.emgabv = str2num(get(handles.emgabv,'String'));
     cfg.filtpar.eogblw = str2num(get(handles.eogblw,'String'));
@@ -553,7 +563,7 @@ for i = 1 : handles.Nfiles
     end  
     % run the preprocessing
     disp(['The preprocessing of ', char(cfg.preproname)])
-    csg_preprocessing(cfg);
+    CSG_preprocessing(cfg);
 end
 
 

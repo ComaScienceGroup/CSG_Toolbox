@@ -92,13 +92,12 @@ signals     =   csg_reshape(fD,Nchan,Nepo,Lepo,nspl); % signals = Nchan x Nepo x
 cfg.signals	=   signals;
 
 % bad channels detection
-Dnew    =   csg_badchannels(cfg);
-
+Dnew            =   csg_badchannels(cfg);
+cfg.dataset     =   Dnew;
 %% Interpolation of bad channels detected
 % ---------------------------------------
 if interpol.L
     cfg.badchannels     =   or(Dnew.CSG.preprocessing.badchannels.chan_flat,Dnew.CSG.preprocessing.badchannels.chan_noisy);
-    cfg.dataset         =   Dnew;
     [Dnew cleaned]      =   csg_interpol(cfg);
     % keep in memory channels repaired and remove them from badchannels
     Dnew.CSG.preprocessing.interpolated.large       = cleaned;
@@ -110,13 +109,14 @@ end
 
 %% BAD CHANNELS detection over small epochs
 % -----------------------------------------
+Dnew.CSG.preprocessing.badchannels.incoherent = [];
 if incoh
     cfg.epoch       =   win.S;
     NofE            =   ceil(nspl/(fs*win.S));  % number of small epochs in the whole recording
     cfg.badchannels =   or(Dnew.CSG.preprocessing.badchannels.chan_flat,Dnew.CSG.preprocessing.badchannels.chan_noisy);
     Dnew            =   CSG_artefact(cfg);    
+    cfg.dataset     =   Dnew;
     if interpol.S     
-        cfg.dataset     =   Dnew;
         cfg.badchannels =   cfg.dataset.CSG.preprocessing.badchannels.incoherent;
         cfg.winsize     =   win.S;
         %% interpolation of bad channels detected over small epochs
@@ -126,8 +126,6 @@ if incoh
         for ibc = 1 : NofE
             Dnew.CSG.preprocessing.badchannels.incoherent = and(Dnew.CSG.preprocessing.badchannels.incoherent,~Dnew.CSG.preprocessing.interpolated.small);
         end
-    else 
-        Dnew.CSG.preprocessing.badchannels.incoherent = [];
     end
 end
 % Pull together all artefacts detected by one second epoch
@@ -135,11 +133,13 @@ allbad = splitwin(or(Dnew.CSG.preprocessing.badchannels.chan_flat,Dnew.CSG.prepr
 if isempty(Dnew.CSG.preprocessing.badchannels.incoherent)
     Dnew.CSG.preprocessing.artefact = allbad;
 else
-    allbad2 = splitwin(Dnew.CSG.preprocessing.incoherent,1,win.S);
+    allbad2 = splitwin(Dnew.CSG.preprocessing.badchannels.incoherent,win.S);
     Dnew.CSG.preprocessing.artefact = allbad + allbad2;
 end
 Dnew.CSG.preprocessing.info.Lwin = win.L;
 Dnew.CSG.preprocessing.info.Swin = win.S;
+Dnew.CSG.preprocessing.info.ILwin = interpol.L;
+Dnew.CSG.preprocessing.info.ISwin = interpol.S;
 save(Dnew);
 
 % make a report on paper and save it on the mat file

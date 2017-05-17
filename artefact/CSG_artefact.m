@@ -43,10 +43,10 @@ L05     =   fs*0.5;
 N05     =   ceil(Lepo/L05); 
 
 % initialization
-zMatrx      =   zeros(Nepo,Nchan);
-zMatrx2     =   zeros(Nepo,Nchan);
-A           =   zeros(Nepo,Nchan);
-badchan     =   zeros(Nepo,Nchan);
+zMatrx      =   zeros(Nchan,Nepo);
+zMatrx2     =   zeros(Nchan,Nepo);
+Ampl        =   zeros(Nchan,Nepo);
+badchan     =   zeros(Nchan,Nepo);
 
 % reshape the data by epoch 
 epochs  =   csg_reshape(signals,Nchan,Nepo,Lepo,nspl); % epochs = Nchan x Nepo x Lepo 
@@ -59,13 +59,13 @@ fprintf(1,'Bad Channels detection over small %d sec-epochs \n', epoch);
 for iw  =   2  :    Nepo
     % search if badchannel has previously been detected
     iwin    =   ceil(iw/(winsize/epoch));    
-    if numel(find(badchannels(iwin,:)))  >   0.5*Nchan % if more than 50% of channels considered as bad, all channels are 'removed'
-        badchan(iw,:) = 1;
+    if numel(find(badchannels(:,iwin)))  >   0.7*Nchan % if more than 70% of channels considered as bad, all channels are 'removed'
+        badchan(:,iw) = 1;
     else 
         for ichan   =   1 : Nchan
         %%  incoherence: kinds of z score computed from small areas for each channel
-            chan_around         =   and(Dchan(ichan,:)<tr_spc,~badchannels(iwin,:));
-            chan_around(ichan)  = 0; 
+            chan_around         =   and(Dchan(:,ichan)<tr_spc,~badchannels(:,iwin));
+            chan_around(ichan)  =   0; 
             if numel(find(chan_around)) == 0
                 error('The density of EEG is insufficient')
             end
@@ -78,17 +78,17 @@ for iw  =   2  :    Nepo
             end
             SDan    =   std(sig);
             zsc     =   mean((sig-Dmean))/std(Dmean);
-            zMatrx(iw,ichan)    =   zsc;
+            zMatrx(ichan,iw)    =   zsc;
          %% kinds of zscore over small fix time windows on a same channel
-            zMatrx2(iw,ichan)   =   SDan/Tempo_std(ichan);
+            zMatrx2(ichan,iw)   =   SDan/Tempo_std(ichan);
             if and(abs(SDan/Tempo_std(ichan))<3, abs(SDan/Tempo_std(ichan))>1)
                Tempo_std(ichan)  =  SDan;
             end   
-            chantoremove    =   or(abs(zMatrx(iw,:)>3),abs(zMatrx2(iw,:)>3));
+            chantoremove    =   or(abs(zMatrx(:,iw)>3),abs(zMatrx2(:,iw)>3));
             if numel(find(chantoremove))>0.5*Nchan
-                badchan(iw,:) = 1;
+                badchan(:,iw) = 1;
             else 
-                badchan(iw,chantoremove) = 1;
+                badchan(chantoremove,iw) = 1;
             end 
         end
         %% popping2: compute the maximal slope over small epoch for each channel
@@ -99,23 +99,23 @@ for iw  =   2  :    Nepo
             [Vmin imin] = min(shortsig(:,i05,:),[],3);  % min over time for each channel
             slope(:,i05) = (Vmax-Vmin)./(abs(imax-imin)/fs); 
         end
-        A(iw,:) = max(slope,[],2);
+        Ampl(:,iw) = max(slope,[],2);
     end
 end
 % 
 abn = cell(1,Nchan);
 for ichan = 1 : Nchan
-    speedchan   = A(:,ichan);
+    speedchan   = Ampl(ichan,:);
     newabn      = find(abs(zscore(speedchan))>3);
     count = 0;
     while ~isempty(newabn) && count <= 3
         speedchan(abn{ichan}) = 0;
         newabn =  find(abs(zscore(speedchan))>3);
-        abn{ichan} = [abn{ichan}; newabn];
+        abn{ichan} = [abn{ichan}(:); newabn(:)];
         count = count + 1;
     end
-    inepoch = find(diff([0; sort(abn{ichan})])==2);
-    abn{ichan} = sort([abn{ichan} ; inepoch]);
+    inepoch = find(diff([0; sort(abn{ichan}(:))])==2);
+    abn{ichan} = sort([abn{ichan}(:); inepoch(:)]);
     fprintf('.')
 end
 fprintf('.\n')
@@ -123,12 +123,12 @@ fprintf('.\n')
 for ichan = 1 : Nchan
     badepo = abn{ichan};
     for ibe = 1 : numel(badepo)
-        badchan(badepo(ibe),ichan) = 1;
+        badchan(ichan,badepo(ibe)) = 1;
     end
 end
 for iw = 1 : Nepo
-    if numel(find(badchan(iw,:)))>0.5*Nchan
-        badchan(iw,:) = 1;
+    if numel(find(badchan(:,iw)))>0.5*Nchan
+        badchan(:,iw) = 1;
     end
 end
 
