@@ -22,7 +22,7 @@ function varargout = csg_ROI(varargin)
 
 % Edit the above text to modify the response to help csg_ROI
 
-% Last Modified by GUIDE v2.5 17-May-2017 13:37:52
+% Last Modified by GUIDE v2.5 17-May-2017 14:39:22
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -840,3 +840,21 @@ try
     graph(handles);
     guidata(hObject,handles)
 end
+
+
+% --- Executes on button press in save.
+function save_Callback(hObject, eventdata, handles)
+% hObject    handle to save (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+Namefile = fullfile(path(handles.Dmeg{1}),['ROI_' fname(handles.Dmeg{1})]);
+roi1 = handles.inroi1;
+
+save(Namefile,'roi1');%,'handles.inroi2','handles.inroi3','handles.inroi4','handles.inroi5','handles.inroi6','handles.inroi7','handles.inroi8','handles.inroi9','handles.inroi10');
+
+% --- Executes on button press in load.
+function load_Callback(hObject, eventdata, handles)
+% hObject    handle to load (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
