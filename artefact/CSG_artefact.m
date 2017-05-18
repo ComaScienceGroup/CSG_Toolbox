@@ -74,7 +74,7 @@ for iw  =   2  :    Nepo
             if size(sigaround,1)>1
                 Dmean = mean(sigaround);
             else 
-                Dmean = Df;
+                Dmean = sigaround;
             end
             SDan    =   std(sig);
             zsc     =   mean((sig-Dmean))/std(Dmean);

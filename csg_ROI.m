@@ -22,7 +22,7 @@ function varargout = csg_ROI(varargin)
 
 % Edit the above text to modify the response to help csg_ROI
 
-% Last Modified by GUIDE v2.5 17-May-2017 14:39:22
+% Last Modified by GUIDE v2.5 18-May-2017 09:57:04
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -87,7 +87,6 @@ handles.color(10,:) = get(handles.roi10,'ForegroundColor');
 % graph
 [dumb1,dumb2,index]=intersect(upper(chanlabels(handles.Dmeg{1})),upper(handles.names));
 
-idxred  =   index(find(handles.crc_types(index)<-1));
 idxblue =   index(handles.crc_types(index)>-2);
 
 xblu    =   handles.pos(1,idxblue);
@@ -850,11 +849,68 @@ function save_Callback(hObject, eventdata, handles)
 
 Namefile = fullfile(path(handles.Dmeg{1}),['ROI_' fname(handles.Dmeg{1})]);
 roi1 = handles.inroi1;
-
-save(Namefile,'roi1');%,'handles.inroi2','handles.inroi3','handles.inroi4','handles.inroi5','handles.inroi6','handles.inroi7','handles.inroi8','handles.inroi9','handles.inroi10');
+roi2 = handles.inroi2;
+roi3 = handles.inroi3;
+roi4 = handles.inroi4;
+roi5 = handles.inroi5;
+roi6 = handles.inroi6;
+roi7 = handles.inroi7;
+roi8 = handles.inroi8;
+roi9 = handles.inroi9;
+roi10 = handles.inroi10;
+save(Namefile,'roi1','roi2','roi3','roi4','roi5','roi6','roi7','roi8','roi9','roi10');
 
 % --- Executes on button press in load.
 function load_Callback(hObject, eventdata, handles)
 % hObject    handle to load (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+file = spm_select(1,'mat','Select a ''ROI'' file to load Regions of Interest',[],[],'ROI*');
+ROI = load(file);
+handles.inroi1 = union(handles.chanav,ROI.roi1);
+handles.inroi2 = union(handles.chanav,ROI.roi2);
+handles.inroi3 = union(handles.chanav,ROI.roi3);
+handles.inroi4 = union(handles.chanav,ROI.roi4);
+handles.inroi5 = union(handles.chanav,ROI.roi5);
+handles.inroi6 = union(handles.chanav,ROI.roi6);
+handles.inroi7 = union(handles.chanav,ROI.roi7);
+handles.inroi8 = union(handles.chanav,ROI.roi8);
+handles.inroi9 = union(handles.chanav,ROI.roi9);
+handles.inroi10 = union(handles.chanav,ROI.roi10);
+available = setdiff(handles.chanav,[ROI.roi1(:);ROI.roi2(:);ROI.roi3(:);ROI.roi4(:);ROI.roi5(:);ROI.roi6(:);ROI.roi7(:);ROI.roi8(:);ROI.roi9(:);ROI.roi10(:)]);
+set(handles.available,'String',available)
+graph(handles)
+guidata(hObject,handles);
+
+
+% --- Executes on button press in reset.
+function reset_Callback(hObject, eventdata, handles)
+% hObject    handle to reset (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(handles.available,'String',handles.chanav);
+set(handles.inroi,'String','in ROI')
+set(handles.listroi,'String',{})
+handles.inroi1 = {};
+handles.inroi2 = {};
+handles.inroi3 = {};
+handles.inroi4 = {};
+handles.inroi5 = {};
+handles.inroi6 = {};
+handles.inroi7 = {};
+handles.inroi8 = {};
+handles.inroi9 = {};
+handles.inroi10 = {};
+graph(handles);
+guidata(hObject,handles);
+
+
+% --- Executes on button press in back.
+function back_Callback(hObject, eventdata, handles)
+% hObject    handle to back (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+csg_eegmenu;
