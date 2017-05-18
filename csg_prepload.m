@@ -9,4 +9,4 @@ for i = 1 : Nfiles
     handles.Dmeg{i} = spm_checkandload(deblank(filenames(i,:)));
 end
 handles.Nfiles = Nfiles;      
-CSG_prepromenu(handles);
+csg_prepromenu(handles);

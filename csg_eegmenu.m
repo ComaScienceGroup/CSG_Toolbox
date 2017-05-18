@@ -22,7 +22,7 @@ function varargout = csg_eegmenu(varargin)
 
 % Edit the above text to modify the response to help csg_eegmenu
 
-% Last Modified by GUIDE v2.5 10-May-2017 10:02:51
+% Last Modified by GUIDE v2.5 18-May-2017 14:43:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -129,3 +129,11 @@ function backmain_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 delete(handles.figure1)
 csg_menu
+
+
+% --- Executes on button press in chunkbutton.
+function chunkbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to chunkbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+csg_chunks;

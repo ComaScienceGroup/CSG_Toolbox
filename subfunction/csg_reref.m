@@ -19,7 +19,7 @@ function varargout = csg_reref(varargin)
 
 % Some definitions:
 %------------------
-origdir = 'C:\Users\Doro\Github\EEGtoolswc\branches\brancheDC\FASST\CSG';
+origdir = 'C:\Users\Doro\Github\CSG_Toolbox\branches\Doro\subfunction';
 montage_file = 'Montage_CSG_256_avgall.mat';
 
 % montage options

@@ -509,9 +509,12 @@ if get(handles.AADopt,'Value')
     cfg.Sinterpo = get(handles.interpolsmall,'Value');
 end
 cfg.incoh = get(handles.detcohopt,'Value');
-cfg.ref = [];
+cfg.ref = {};
+cfg.allref = {};
 if get(handles.rerefopt,'Value')
-    cfg.ref = get(handles.reflist,'String');
+    contentref = get(handles.reflist,'String');
+    cfg.ref    = contentref(get(handles.reflist,'Value'));
+    cfg.allref = contentref;
 end
 
 

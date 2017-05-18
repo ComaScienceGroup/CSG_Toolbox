@@ -45,11 +45,11 @@ elec.chanpos    =   [coord zeros(numel(channels),1)];
 elec.elecpos    =   [coord zeros(numel(channels),1)];
 elec.label      =   chanlabels(D,channels); 
 cfglayout.elec  =	elec;
-cfglayout.layout	= 'ordered';
+cfglayout.layout=   'circular';
 lay             =   ft_prepare_layout(cfglayout, data);
 
 cfgneigh.elec   =   elec;
-cfgneigh.method	=   'distance';      % or 'template' (default = 'distance')
+cfgneigh.method	=   'distance';      % or 'template','triangulation' (default = 'distance')
 cfgneigh.layout	=   lay;
 cfg.neighbours  =   ft_prepare_neighbours(cfgneigh, data);
 
