@@ -868,16 +868,16 @@ function load_Callback(hObject, eventdata, handles)
 
 file = spm_select(1,'mat','Select a ''ROI'' file to load Regions of Interest',[],[],'ROI*');
 ROI = load(file);
-handles.inroi1 = union(handles.chanav,ROI.roi1);
-handles.inroi2 = union(handles.chanav,ROI.roi2);
-handles.inroi3 = union(handles.chanav,ROI.roi3);
-handles.inroi4 = union(handles.chanav,ROI.roi4);
-handles.inroi5 = union(handles.chanav,ROI.roi5);
-handles.inroi6 = union(handles.chanav,ROI.roi6);
-handles.inroi7 = union(handles.chanav,ROI.roi7);
-handles.inroi8 = union(handles.chanav,ROI.roi8);
-handles.inroi9 = union(handles.chanav,ROI.roi9);
-handles.inroi10 = union(handles.chanav,ROI.roi10);
+handles.inroi1 = intersect(handles.chanav,ROI.roi1);
+handles.inroi2 = intersect(handles.chanav,ROI.roi2);
+handles.inroi3 = intersect(handles.chanav,ROI.roi3);
+handles.inroi4 = intersect(handles.chanav,ROI.roi4);
+handles.inroi5 = intersect(handles.chanav,ROI.roi5);
+handles.inroi6 = intersect(handles.chanav,ROI.roi6);
+handles.inroi7 = intersect(handles.chanav,ROI.roi7);
+handles.inroi8 = intersect(handles.chanav,ROI.roi8);
+handles.inroi9 = intersect(handles.chanav,ROI.roi9);
+handles.inroi10 = intersect(handles.chanav,ROI.roi10);
 available = setdiff(handles.chanav,[ROI.roi1(:);ROI.roi2(:);ROI.roi3(:);ROI.roi4(:);ROI.roi5(:);ROI.roi6(:);ROI.roi7(:);ROI.roi8(:);ROI.roi9(:);ROI.roi10(:)]);
 set(handles.available,'String',available)
 graph(handles)
