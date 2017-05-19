@@ -22,7 +22,7 @@ function varargout = csg_ROI(varargin)
 
 % Edit the above text to modify the response to help csg_ROI
 
-% Last Modified by GUIDE v2.5 18-May-2017 09:57:04
+% Last Modified by GUIDE v2.5 19-May-2017 12:01:29
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -122,6 +122,10 @@ handles.inroi8 = {};
 handles.inroi9 = {};
 handles.inroi10 = {};
 
+% setup axes
+% set(handles.axes1,'HitTest','off')
+% set(gcf,'WindowButtonDownFcn',@click_Callback)
+%set(handles.axes1,'ButtonDownFcn',@click)
 % Update handles structure
 guidata(hObject, handles);
 
@@ -468,38 +472,49 @@ function available_Callback(hObject, eventdata, handles)
 
 contents = cellstr(get(hObject,'String'));
 sel = contents{get(hObject,'Value')};
-handles.chanav = setdiff(handles.chanav,sel);
-set(handles.available,'String',handles.chanav)
+available = get(handles.available,'String');
+idx = ~strcmp(available,sel);
+set(handles.available,'String',available(idx),'Value',min(find(~idx),numel(available)-1))
 if get(handles.roi1,'Value')
-    handles.inroi1 = union(handles.inroi1,sel);
-    set(handles.listroi,'String',handles.inroi1);
+    [dum goodorder dum] = intersect(handles.chanav,union(handles.inroi1,sel));
+    handles.inroi1      = handles.chanav(sort(goodorder));
+    set(handles.listroi,'String',handles.inroi1,'Value',numel(handles.inroi1));
 elseif get(handles.roi2,'Value')
-        handles.inroi2 = union(handles.inroi2,sel);
-    set(handles.listroi,'String',handles.inroi2);
+    [dum goodorder dum] = intersect(handles.chanav,union(handles.inroi2,sel));
+    handles.inroi2      = handles.chanav(sort(goodorder));
+    set(handles.listroi,'String',handles.inroi2,'Value',numel(handles.inroi2));
 elseif get(handles.roi3,'Value')
-        handles.inroi3 = union(handles.inroi3,sel);
-    set(handles.listroi,'String',handles.inroi3);
+    [dum goodorder dum] = intersect(handles.chanav,union(handles.inroi3,sel));
+    handles.inroi3      = handles.chanav(sort(goodorder));
+    set(handles.listroi,'String',handles.inroi3,'Value',numel(handles.inroi3));
 elseif get(handles.roi4,'Value')
-        handles.inroi4 = union(handles.inroi4,sel);
-    set(handles.listroi,'String',handles.inroi4);
+    [dum goodorder dum] = intersect(handles.chanav,union(handles.inroi4,sel));
+    handles.inroi4      = handles.chanav(sort(goodorder));
+    set(handles.listroi,'String',handles.inroi4,'Value',numel(handles.inroi4));
 elseif get(handles.roi5,'Value')
-        handles.inroi5 = union(handles.inroi5,sel);
-    set(handles.listroi,'String',handles.inroi5);
+    [dum goodorder dum] = intersect(handles.chanav,union(handles.inroi5,sel));
+    handles.inroi5      = handles.chanav(sort(goodorder));
+    set(handles.listroi,'String',handles.inroi5,'Value',numel(handles.inroi5));
 elseif get(handles.roi6,'Value')
-        handles.inroi6 = union(handles.inroi6,sel);
-    set(handles.listroi,'String',handles.inroi6);
+    [dum goodorder dum] = intersect(handles.chanav,union(handles.inroi6,sel));
+    handles.inroi6      = handles.chanav(sort(goodorder));
+    set(handles.listroi,'String',handles.inroi6,'Value',numel(handles.inroi6));
 elseif get(handles.roi7,'Value')
-        handles.inroi7 = union(handles.inroi7,sel);
-    set(handles.listroi,'String',handles.inroi7);
+    [dum goodorder dum] = intersect(handles.chanav,union(handles.inroi7,sel));
+    handles.inroi7      = handles.chanav(sort(goodorder));
+    set(handles.listroi,'String',handles.inroi7,'Value',numel(handles.inroi7));
 elseif get(handles.roi8,'Value')
-        handles.inroi8 = union(handles.inroi8,sel);
-    set(handles.listroi,'String',handles.inroi8);
+    [dum goodorder dum] = intersect(handles.chanav,union(handles.inroi8,sel));
+    handles.inroi8      = handles.chanav(sort(goodorder));
+    set(handles.listroi,'String',handles.inroi8,'Value',numel(handles.inroi8));
 elseif get(handles.roi9,'Value')
-        handles.inroi9 = union(handles.inroi9,sel);
-    set(handles.listroi,'String',handles.inroi9);
+    [dum goodorder dum] = intersect(handles.chanav,union(handles.inroi9,sel));
+    handles.inroi9      = handles.chanav(sort(goodorder));
+    set(handles.listroi,'String',handles.inroi9,'Value',numel(handles.inroi9));
 elseif get(handles.roi10,'Value')
-        handles.inroi10 = union(handles.inroi10,sel);
-    set(handles.listroi,'String',handles.inroi10);
+    [dum goodorder dum] = intersect(handles.chanav,union(handles.inroi10,sel));
+    handles.inroi10      = handles.chanav(sort(goodorder));
+    set(handles.listroi,'String',handles.inroi10,'Value',numel(handles.inroi10));
 end
 graph(handles)
 guidata(hObject,handles)
@@ -527,10 +542,12 @@ function listroi_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from listroi
 
 contents    = cellstr(get(hObject,'String'));
-sel         = contents{get(hObject,'Value')};
-newcontent  = setdiff(contents,sel);
+sel         = contents{get(hObject,'Value')}; 
+[dum goodorder dum] = intersect(handles.chanav, setdiff(contents,sel));
+newcontent  = handles.chanav(sort(goodorder));
 available   = get(handles.available,'String');
-newavail    = union(available,sel);
+[dum goodorder dum]  = intersect(handles.chanav,union(available,sel));
+newavail = handles.chanav(sort(goodorder));
 Name = get(handles.inroi,'String');
 switch Name
     case 'ROI 1'
@@ -554,8 +571,8 @@ switch Name
     case 'ROI 10'
         handles.inroi10  =  newcontent;
 end
-set(handles.listroi,'String',newcontent);
-set(handles.available,'String',newavail);
+set(handles.listroi,'String',newcontent,'Value',min(numel(newcontent),get(hObject,'Value')));
+set(handles.available,'String',newavail,'Value',numel(newavail));
 graph(handles)
 guidata(hObject,handles)
 
@@ -637,217 +654,26 @@ try
     delete(get(A(idx),'Children'))
 end
 
-
-% --- Executes on mouse press over axes background.
-function click(hObject, eventdata, handles)
-% hObject    handle to axes1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-Mouse 	= get(hObject,'CurrentPoint');
-dist	= sqrt((handles.pos(1,handles.index)-Mouse(1,1)).^2 + (handles.pos(2,handles.index)-Mouse(1,2)).^2);
-[mindist idx] = min(dist);
-Elec    = upper(handles.names(handles.index(idx)));
-
-chanavail = get(handles.available,'String');
-nRoi = get(handles.inroi,'String');
-newcontent = get(handles.listroi,'String');
-try
-    switch nRoi
-        case 'ROI 1'
-            if any(strcmp(handles.inroi1,Elec))
-                newcontent = setdiff(handles.inroi1,Elec);
-                chanavail  = union(chanavail,Elec); 
-            else
-                newcontent = union(Elec,handles.inroi1);
-                chanavail  = setdiff(chanavail,Elec);            
-            end
-            handles.inroi1  =  newcontent;
-            handles.inroi2  =  setdiff(handles.inroi2,Elec);
-            handles.inroi3  =  setdiff(handles.inroi3,Elec);
-            handles.inroi4  =  setdiff(handles.inroi4,Elec);
-            handles.inroi5  =  setdiff(handles.inroi5,Elec);
-            handles.inroi6  =  setdiff(handles.inroi6,Elec);
-            handles.inroi7  =  setdiff(handles.inroi7,Elec);
-            handles.inroi8  =  setdiff(handles.inroi8,Elec);
-            handles.inroi9  =  setdiff(handles.inroi9,Elec);
-            handles.inroi10 =  setdiff(handles.inroi10,Elec);
-        case 'ROI 2'
-            if any(strcmp(handles.inroi2,Elec))
-                newcontent = setdiff(handles.inroi2,Elec);
-                chanavail  = union(chanavail,Elec); 
-            else
-                newcontent = union(Elec,handles.inroi2);
-                chanavail  = setdiff(chanavail,Elec);            
-            end
-            handles.inroi2  =  newcontent;
-            handles.inroi1  = setdiff(handles.inroi1,Elec);
-            handles.inroi3  = setdiff(handles.inroi3,Elec);
-            handles.inroi4  = setdiff(handles.inroi4,Elec);
-            handles.inroi5  = setdiff(handles.inroi5,Elec);
-            handles.inroi6  = setdiff(handles.inroi6,Elec);
-            handles.inroi7  = setdiff(handles.inroi7,Elec);
-            handles.inroi8  = setdiff(handles.inroi8,Elec);
-            handles.inroi9  = setdiff(handles.inroi9,Elec);
-            handles.inroi10  = setdiff(handles.inroi10,Elec);
-        case 'ROI 3'
-            if any(strcmp(handles.inroi3,Elec))
-                newcontent = setdiff(handles.inroi3,Elec);
-                chanavail  = union(chanavail,Elec); 
-            else
-                newcontent = union(Elec,handles.inroi3);
-                chanavail  = setdiff(chanavail,Elec);            
-            end
-            handles.inroi3  =  newcontent;
-            handles.inroi2  = setdiff(handles.inroi2,Elec);
-            handles.inroi1  = setdiff(handles.inroi1,Elec);
-            handles.inroi4  = setdiff(handles.inroi4,Elec);
-            handles.inroi5  = setdiff(handles.inroi5,Elec);
-            handles.inroi6  = setdiff(handles.inroi6,Elec);
-            handles.inroi7  = setdiff(handles.inroi7,Elec);
-            handles.inroi8  = setdiff(handles.inroi8,Elec);
-            handles.inroi9  = setdiff(handles.inroi9,Elec);
-            handles.inroi10  = setdiff(handles.inroi10,Elec);
-        case 'ROI 4'
-            if any(strcmp(handles.inroi4,Elec))
-                newcontent = setdiff(handles.inroi4,Elec);
-                chanavail  = union(chanavail,Elec); 
-            else
-                newcontent = union(Elec,handles.inroi4);
-                chanavail  = setdiff(chanavail,Elec);            
-            end
-            handles.inroi4  =  newcontent;
-            handles.inroi2  = setdiff(handles.inroi2,Elec);
-            handles.inroi3  = setdiff(handles.inroi3,Elec);
-            handles.inroi1  = setdiff(handles.inroi1,Elec);
-            handles.inroi5  = setdiff(handles.inroi5,Elec);
-            handles.inroi6  = setdiff(handles.inroi6,Elec);
-            handles.inroi7  = setdiff(handles.inroi7,Elec);
-            handles.inroi8  = setdiff(handles.inroi8,Elec);
-            handles.inroi9  = setdiff(handles.inroi9,Elec);
-            handles.inroi10  = setdiff(handles.inroi10,Elec);
-        case 'ROI 5'
-            if any(strcmp(handles.inroi5,Elec))
-                newcontent = setdiff(handles.inroi5,Elec);
-                chanavail  = union(chanavail,Elec); 
-            else
-                newcontent = union(Elec,handles.inroi5);
-                chanavail  = setdiff(chanavail,Elec);            
-            end
-            handles.inroi5  =  newcontent;
-            handles.inroi2  = setdiff(handles.inroi2,Elec);
-            handles.inroi3  = setdiff(handles.inroi3,Elec);
-            handles.inroi4  = setdiff(handles.inroi4,Elec);
-            handles.inroi1  = setdiff(handles.inroi1,Elec);
-            handles.inroi6  = setdiff(handles.inroi6,Elec);
-            handles.inroi7  = setdiff(handles.inroi7,Elec);
-            handles.inroi8  = setdiff(handles.inroi8,Elec);
-            handles.inroi9  = setdiff(handles.inroi9,Elec);
-            handles.inroi10  = setdiff(handles.inroi10,Elec);
-        case 'ROI 6'
-            if any(strcmp(handles.inroi6,Elec))
-                newcontent = setdiff(handles.inroi6,Elec);
-                chanavail  = union(chanavail,Elec); 
-            else
-                newcontent = union(Elec,handles.inroi6);
-                chanavail  = setdiff(chanavail,Elec);            
-            end  
-            handles.inroi6  =  newcontent;
-            handles.inroi2  = setdiff(handles.inroi2,Elec);
-            handles.inroi3  = setdiff(handles.inroi3,Elec);
-            handles.inroi4  = setdiff(handles.inroi4,Elec);
-            handles.inroi5  = setdiff(handles.inroi5,Elec);
-            handles.inroi1  = setdiff(handles.inroi1,Elec);
-            handles.inroi7  = setdiff(handles.inroi7,Elec);
-            handles.inroi8  = setdiff(handles.inroi8,Elec);
-            handles.inroi9  = setdiff(handles.inroi9,Elec);
-            handles.inroi10  = setdiff(handles.inroi10,Elec);
-        case 'ROI 7'
-            if any(strcmp(handles.inroi7,Elec))
-                newcontent = setdiff(handles.inroi7,Elec);
-                chanavail  = union(chanavail,Elec); 
-            else
-                newcontent = union(Elec,handles.inroi7);
-                chanavail  = setdiff(chanavail,Elec);            
-            end  
-            handles.inroi7  =  newcontent;
-            handles.inroi2  = setdiff(handles.inroi2,Elec);
-            handles.inroi3  = setdiff(handles.inroi3,Elec);
-            handles.inroi4  = setdiff(handles.inroi4,Elec);
-            handles.inroi5  = setdiff(handles.inroi5,Elec);
-            handles.inroi6  = setdiff(handles.inroi6,Elec);
-            handles.inroi1  = setdiff(handles.inroi1,Elec);
-            handles.inroi8  = setdiff(handles.inroi8,Elec);
-            handles.inroi9  = setdiff(handles.inroi9,Elec);
-            handles.inroi10  = setdiff(handles.inroi10,Elec);
-        case 'ROI 8'
-            if any(strcmp(handles.inroi8,Elec))
-                newcontent = setdiff(handles.inroi8,Elec);
-                chanavail  = union(chanavail,Elec); 
-            else
-                newcontent = union(Elec,handles.inroi8);
-                chanavail  = setdiff(chanavail,Elec);            
-            end 
-            handles.inroi8  =  newcontent;
-            handles.inroi2  = setdiff(handles.inroi2,Elec);
-            handles.inroi3  = setdiff(handles.inroi3,Elec);
-            handles.inroi4  = setdiff(handles.inroi4,Elec);
-            handles.inroi5  = setdiff(handles.inroi5,Elec);
-            handles.inroi6  = setdiff(handles.inroi6,Elec);
-            handles.inroi7  = setdiff(handles.inroi7,Elec);
-            handles.inroi1  = setdiff(handles.inroi1,Elec);
-            handles.inroi9  = setdiff(handles.inroi9,Elec);
-            handles.inroi10  = setdiff(handles.inroi10,Elec);
-        case 'ROI 9'
-            if any(strcmp(handles.inroi9,Elec))
-                newcontent = setdiff(handles.inroi9,Elec);
-                chanavail  = union(chanavail,Elec); 
-            else
-                newcontent = union(Elec,handles.inroi9);
-                chanavail  = setdiff(chanavail,Elec);            
-            end  
-            handles.inroi9  =  newcontent;
-            handles.inroi2  = setdiff(handles.inroi2,Elec);
-            handles.inroi3  = setdiff(handles.inroi3,Elec);
-            handles.inroi4  = setdiff(handles.inroi4,Elec);
-            handles.inroi5  = setdiff(handles.inroi5,Elec);
-            handles.inroi6  = setdiff(handles.inroi6,Elec);
-            handles.inroi7  = setdiff(handles.inroi7,Elec);
-            handles.inroi8  = setdiff(handles.inroi8,Elec);
-            handles.inroi1  = setdiff(handles.inroi1,Elec);
-            handles.inroi10  = setdiff(handles.inroi10,Elec);
-        case 'ROI 10'
-            if any(strcmp(handles.inroi10,Elec))
-                newcontent = setdiff(handles.inroi10,Elec);
-                chanavail  = union(chanavail,Elec); 
-            else
-                newcontent = union(Elec,handles.inroi10);
-                chanavail  = setdiff(chanavail,Elec);            
-            end 
-            handles.inroi10  =  newcontent;
-            handles.inroi2  = setdiff(handles.inroi2,Elec);
-            handles.inroi3  = setdiff(handles.inroi3,Elec);
-            handles.inroi4  = setdiff(handles.inroi4,Elec);
-            handles.inroi5  = setdiff(handles.inroi5,Elec);
-            handles.inroi6  = setdiff(handles.inroi6,Elec);
-            handles.inroi7  = setdiff(handles.inroi7,Elec);
-            handles.inroi8  = setdiff(handles.inroi8,Elec);
-            handles.inroi9  = setdiff(handles.inroi9,Elec);
-            handles.inroi1  = setdiff(handles.inroi1,Elec);
-    end
-    set(handles.available,'String',chanavail);
-    set(handles.listroi,'String',newcontent);
-    graph(handles);
-    guidata(hObject,handles)
-end
-
-
 % --- Executes on button press in save.
 function save_Callback(hObject, eventdata, handles)
 % hObject    handle to save (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-Namefile = fullfile(path(handles.Dmeg{1}),['ROI_' fname(handles.Dmeg{1})]);
+currentpath = pwd;
+cd (path(handles.Dmeg{1}));
+ROIname = ls(['ROI_*' fname(handles.Dmeg{1})]);
+if isempty(ROIname)
+    Namefile = fullfile(path(handles.Dmeg{1}),['ROI_1_' fname(handles.Dmeg{1})]);
+else 
+    num = ROIname(:,5);
+    i=1;
+    while any(str2num(num)==i)
+        i=i+1;
+    end
+    Namefile = fullfile(path(handles.Dmeg{1}),['ROI_',num2str(i),'_', fname(handles.Dmeg{1})]);
+end
+
 roi1 = handles.inroi1;
 roi2 = handles.inroi2;
 roi3 = handles.inroi3;
@@ -859,7 +685,7 @@ roi8 = handles.inroi8;
 roi9 = handles.inroi9;
 roi10 = handles.inroi10;
 save(Namefile,'roi1','roi2','roi3','roi4','roi5','roi6','roi7','roi8','roi9','roi10');
-
+cd (currentpath)
 % --- Executes on button press in load.
 function load_Callback(hObject, eventdata, handles)
 % hObject    handle to load (see GCBO)
@@ -890,9 +716,19 @@ function reset_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-set(handles.available,'String',handles.chanav);
+set(handles.available,'String',handles.chanav,'Enable','off');
 set(handles.inroi,'String','in ROI')
 set(handles.listroi,'String',{})
+set(handles.roi1,'Value',0);
+set(handles.roi2,'Value',0);
+set(handles.roi3,'Value',0);
+set(handles.roi4,'Value',0);
+set(handles.roi5,'Value',0);
+set(handles.roi6,'Value',0);
+set(handles.roi7,'Value',0);
+set(handles.roi8,'Value',0);
+set(handles.roi9,'Value',0);
+set(handles.roi10,'Value',0);
 handles.inroi1 = {};
 handles.inroi2 = {};
 handles.inroi3 = {};
@@ -914,3 +750,215 @@ function back_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 csg_eegmenu;
+
+
+% --- Executes on mouse press over figure background, over a disabled or
+% --- inactive control, or over an axes background.
+function click(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+Mouse 	= get(handles.axes1,'CurrentPoint');
+XMouse = Mouse(1,1);
+YMouse = Mouse(1,2);
+
+if XMouse > 0 && XMouse <1 && YMouse > 0 && YMouse <1
+    dist	= sqrt((handles.pos(1,handles.index)-XMouse).^2 + (handles.pos(2,handles.index)-YMouse).^2);
+    [mindist idx] = min(dist);
+    if mindist<0.1
+        Elec    = upper(handles.names(handles.index(idx)));
+
+        chanavail = get(handles.available,'String');
+        nRoi = get(handles.inroi,'String');
+        newcontent = get(handles.listroi,'String');
+        try
+            switch nRoi
+                case 'ROI 1'
+                    if any(strcmp(handles.inroi1,Elec))
+                        newcontent = setdiff(handles.inroi1,Elec);
+                        chanavail  = union(chanavail,Elec); 
+                    else
+                        newcontent = union(Elec,handles.inroi1);
+                        chanavail  = setdiff(chanavail,Elec);            
+                    end
+                    handles.inroi1  =  newcontent;
+                    handles.inroi2  =  setdiff(handles.inroi2,Elec);
+                    handles.inroi3  =  setdiff(handles.inroi3,Elec);
+                    handles.inroi4  =  setdiff(handles.inroi4,Elec);
+                    handles.inroi5  =  setdiff(handles.inroi5,Elec);
+                    handles.inroi6  =  setdiff(handles.inroi6,Elec);
+                    handles.inroi7  =  setdiff(handles.inroi7,Elec);
+                    handles.inroi8  =  setdiff(handles.inroi8,Elec);
+                    handles.inroi9  =  setdiff(handles.inroi9,Elec);
+                    handles.inroi10 =  setdiff(handles.inroi10,Elec);
+                case 'ROI 2'
+                    if any(strcmp(handles.inroi2,Elec))
+                        newcontent = setdiff(handles.inroi2,Elec);
+                        chanavail  = union(chanavail,Elec); 
+                    else
+                        newcontent = union(Elec,handles.inroi2);
+                        chanavail  = setdiff(chanavail,Elec);            
+                    end
+                    handles.inroi2  =  newcontent;
+                    handles.inroi1  = setdiff(handles.inroi1,Elec);
+                    handles.inroi3  = setdiff(handles.inroi3,Elec);
+                    handles.inroi4  = setdiff(handles.inroi4,Elec);
+                    handles.inroi5  = setdiff(handles.inroi5,Elec);
+                    handles.inroi6  = setdiff(handles.inroi6,Elec);
+                    handles.inroi7  = setdiff(handles.inroi7,Elec);
+                    handles.inroi8  = setdiff(handles.inroi8,Elec);
+                    handles.inroi9  = setdiff(handles.inroi9,Elec);
+                    handles.inroi10  = setdiff(handles.inroi10,Elec);
+                case 'ROI 3'
+                    if any(strcmp(handles.inroi3,Elec))
+                        newcontent = setdiff(handles.inroi3,Elec);
+                        chanavail  = union(chanavail,Elec); 
+                    else
+                        newcontent = union(Elec,handles.inroi3);
+                        chanavail  = setdiff(chanavail,Elec);            
+                    end
+                    handles.inroi3  =  newcontent;
+                    handles.inroi2  = setdiff(handles.inroi2,Elec);
+                    handles.inroi1  = setdiff(handles.inroi1,Elec);
+                    handles.inroi4  = setdiff(handles.inroi4,Elec);
+                    handles.inroi5  = setdiff(handles.inroi5,Elec);
+                    handles.inroi6  = setdiff(handles.inroi6,Elec);
+                    handles.inroi7  = setdiff(handles.inroi7,Elec);
+                    handles.inroi8  = setdiff(handles.inroi8,Elec);
+                    handles.inroi9  = setdiff(handles.inroi9,Elec);
+                    handles.inroi10  = setdiff(handles.inroi10,Elec);
+                case 'ROI 4'
+                    if any(strcmp(handles.inroi4,Elec))
+                        newcontent = setdiff(handles.inroi4,Elec);
+                        chanavail  = union(chanavail,Elec); 
+                    else
+                        newcontent = union(Elec,handles.inroi4);
+                        chanavail  = setdiff(chanavail,Elec);            
+                    end
+                    handles.inroi4  =  newcontent;
+                    handles.inroi2  = setdiff(handles.inroi2,Elec);
+                    handles.inroi3  = setdiff(handles.inroi3,Elec);
+                    handles.inroi1  = setdiff(handles.inroi1,Elec);
+                    handles.inroi5  = setdiff(handles.inroi5,Elec);
+                    handles.inroi6  = setdiff(handles.inroi6,Elec);
+                    handles.inroi7  = setdiff(handles.inroi7,Elec);
+                    handles.inroi8  = setdiff(handles.inroi8,Elec);
+                    handles.inroi9  = setdiff(handles.inroi9,Elec);
+                    handles.inroi10  = setdiff(handles.inroi10,Elec);
+                case 'ROI 5'
+                    if any(strcmp(handles.inroi5,Elec))
+                        newcontent = setdiff(handles.inroi5,Elec);
+                        chanavail  = union(chanavail,Elec); 
+                    else
+                        newcontent = union(Elec,handles.inroi5);
+                        chanavail  = setdiff(chanavail,Elec);            
+                    end
+                    handles.inroi5  =  newcontent;
+                    handles.inroi2  = setdiff(handles.inroi2,Elec);
+                    handles.inroi3  = setdiff(handles.inroi3,Elec);
+                    handles.inroi4  = setdiff(handles.inroi4,Elec);
+                    handles.inroi1  = setdiff(handles.inroi1,Elec);
+                    handles.inroi6  = setdiff(handles.inroi6,Elec);
+                    handles.inroi7  = setdiff(handles.inroi7,Elec);
+                    handles.inroi8  = setdiff(handles.inroi8,Elec);
+                    handles.inroi9  = setdiff(handles.inroi9,Elec);
+                    handles.inroi10  = setdiff(handles.inroi10,Elec);
+                case 'ROI 6'
+                    if any(strcmp(handles.inroi6,Elec))
+                        newcontent = setdiff(handles.inroi6,Elec);
+                        chanavail  = union(chanavail,Elec); 
+                    else
+                        newcontent = union(Elec,handles.inroi6);
+                        chanavail  = setdiff(chanavail,Elec);            
+                    end  
+                    handles.inroi6  =  newcontent;
+                    handles.inroi2  = setdiff(handles.inroi2,Elec);
+                    handles.inroi3  = setdiff(handles.inroi3,Elec);
+                    handles.inroi4  = setdiff(handles.inroi4,Elec);
+                    handles.inroi5  = setdiff(handles.inroi5,Elec);
+                    handles.inroi1  = setdiff(handles.inroi1,Elec);
+                    handles.inroi7  = setdiff(handles.inroi7,Elec);
+                    handles.inroi8  = setdiff(handles.inroi8,Elec);
+                    handles.inroi9  = setdiff(handles.inroi9,Elec);
+                    handles.inroi10  = setdiff(handles.inroi10,Elec);
+                case 'ROI 7'
+                    if any(strcmp(handles.inroi7,Elec))
+                        newcontent = setdiff(handles.inroi7,Elec);
+                        chanavail  = union(chanavail,Elec); 
+                    else
+                        newcontent = union(Elec,handles.inroi7);
+                        chanavail  = setdiff(chanavail,Elec);            
+                    end  
+                    handles.inroi7  =  newcontent;
+                    handles.inroi2  = setdiff(handles.inroi2,Elec);
+                    handles.inroi3  = setdiff(handles.inroi3,Elec);
+                    handles.inroi4  = setdiff(handles.inroi4,Elec);
+                    handles.inroi5  = setdiff(handles.inroi5,Elec);
+                    handles.inroi6  = setdiff(handles.inroi6,Elec);
+                    handles.inroi1  = setdiff(handles.inroi1,Elec);
+                    handles.inroi8  = setdiff(handles.inroi8,Elec);
+                    handles.inroi9  = setdiff(handles.inroi9,Elec);
+                    handles.inroi10  = setdiff(handles.inroi10,Elec);
+                case 'ROI 8'
+                    if any(strcmp(handles.inroi8,Elec))
+                        newcontent = setdiff(handles.inroi8,Elec);
+                        chanavail  = union(chanavail,Elec); 
+                    else
+                        newcontent = union(Elec,handles.inroi8);
+                        chanavail  = setdiff(chanavail,Elec);            
+                    end 
+                    handles.inroi8  =  newcontent;
+                    handles.inroi2  = setdiff(handles.inroi2,Elec);
+                    handles.inroi3  = setdiff(handles.inroi3,Elec);
+                    handles.inroi4  = setdiff(handles.inroi4,Elec);
+                    handles.inroi5  = setdiff(handles.inroi5,Elec);
+                    handles.inroi6  = setdiff(handles.inroi6,Elec);
+                    handles.inroi7  = setdiff(handles.inroi7,Elec);
+                    handles.inroi1  = setdiff(handles.inroi1,Elec);
+                    handles.inroi9  = setdiff(handles.inroi9,Elec);
+                    handles.inroi10  = setdiff(handles.inroi10,Elec);
+                case 'ROI 9'
+                    if any(strcmp(handles.inroi9,Elec))
+                        newcontent = setdiff(handles.inroi9,Elec);
+                        chanavail  = union(chanavail,Elec); 
+                    else
+                        newcontent = union(Elec,handles.inroi9);
+                        chanavail  = setdiff(chanavail,Elec);            
+                    end  
+                    handles.inroi9  =  newcontent;
+                    handles.inroi2  = setdiff(handles.inroi2,Elec);
+                    handles.inroi3  = setdiff(handles.inroi3,Elec);
+                    handles.inroi4  = setdiff(handles.inroi4,Elec);
+                    handles.inroi5  = setdiff(handles.inroi5,Elec);
+                    handles.inroi6  = setdiff(handles.inroi6,Elec);
+                    handles.inroi7  = setdiff(handles.inroi7,Elec);
+                    handles.inroi8  = setdiff(handles.inroi8,Elec);
+                    handles.inroi1  = setdiff(handles.inroi1,Elec);
+                    handles.inroi10  = setdiff(handles.inroi10,Elec);
+                case 'ROI 10'
+                    if any(strcmp(handles.inroi10,Elec))
+                        newcontent = setdiff(handles.inroi10,Elec);
+                        chanavail  = union(chanavail,Elec); 
+                    else
+                        newcontent = union(Elec,handles.inroi10);
+                        chanavail  = setdiff(chanavail,Elec);            
+                    end 
+                    handles.inroi10  =  newcontent;
+                    handles.inroi2  = setdiff(handles.inroi2,Elec);
+                    handles.inroi3  = setdiff(handles.inroi3,Elec);
+                    handles.inroi4  = setdiff(handles.inroi4,Elec);
+                    handles.inroi5  = setdiff(handles.inroi5,Elec);
+                    handles.inroi6  = setdiff(handles.inroi6,Elec);
+                    handles.inroi7  = setdiff(handles.inroi7,Elec);
+                    handles.inroi8  = setdiff(handles.inroi8,Elec);
+                    handles.inroi9  = setdiff(handles.inroi9,Elec);
+                    handles.inroi1  = setdiff(handles.inroi1,Elec);
+            end
+            set(handles.available,'String',chanavail);
+            set(handles.listroi,'String',newcontent);
+            graph(handles);
+            guidata(hObject,handles)
+        end
+    end
+end
