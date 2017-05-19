@@ -148,15 +148,14 @@ end
 %rerefencing
 if strcmp(ref,'Average of all channels')
     refchosen = mean(Dnew(channels,:));
-    Dnew(channels,:) = Dnew(channels,:)-refchosen;   
 else
     [dum refnumber dum] = intersect(chanlabels(Dnew),ref);
     refchosen = Dnew(refnumber,:);                 
 end
-
+Dnew(channels,:) = Dnew(channels,:)-ones(numel(channels),1)*refchosen(:)';   
 save(Dnew)
 % make a report on paper and save it on the mat file
-% report_preprocessing(cfg.preproname);
+fprintf('To obtain information about the artefact detection method used, tape ''csg_read(''artefact'')'' and load the preprocessed file obtained.');
 
 %%%%%%%%%%%%%%%%%%%%
 function xf = filterlowhigh(x,frqcut,fs,forder)
