@@ -155,7 +155,7 @@ end
 Dnew(channels,:) = Dnew(channels,:)-ones(numel(channels),1)*refchosen(:)';   
 save(Dnew)
 % make a report on paper and save it on the mat file
-% report_preprocessing(cfg.preproname);
+fprintf('To obtain information about the artefact detection method used, tape ''csg_read(''artefact'')'' and load the preprocessed file obtained.');
 
 %%%%%%%%%%%%%%%%%%%%
 function xf = filterlowhigh(x,frqcut,fs,forder)

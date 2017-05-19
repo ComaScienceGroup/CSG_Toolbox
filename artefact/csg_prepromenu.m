@@ -297,7 +297,7 @@ function AADopt_Callback(hObject, eventdata, handles)
 if get(hObject,'Value')
     set(handles.Lwinopt,'Enable','on')
     set(handles.detcohopt,'Enable','on')
-    set(handles.interpollarge,'Enable','on')
+    set(handles.interpollarge,'Enable','off')
 else 
     set(handles.Lwinopt,'Enable','off')
     set(handles.detcohopt,'Enable','off')
@@ -396,7 +396,7 @@ function detcohopt_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of detcohopt
 if  get(hObject,'Value')
-    set(handles.interpolsmall,'Enable','on')
+    set(handles.interpolsmall,'Enable','off')
     set(handles.Swinopt,'Enable','on')
 else 
     set(handles.interpolsmall,'Enable','off')
