@@ -22,7 +22,7 @@ function varargout = csg_ROI(varargin)
 
 % Edit the above text to modify the response to help csg_ROI
 
-% Last Modified by GUIDE v2.5 19-May-2017 12:01:29
+% Last Modified by GUIDE v2.5 19-May-2017 15:16:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -962,3 +962,52 @@ if XMouse > 0 && XMouse <1 && YMouse > 0 && YMouse <1
         end
     end
 end
+
+
+% --- Executes on button press in specanal.
+function specanal_Callback(hObject, eventdata, handles)
+% hObject    handle to specanal (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% load parameters
+fs = fsample(handles.Dmeg{1});
+epoch = 4; % 4s could be a parameter to change 
+pow2 = nextpow2(epoch*fs);
+nfft = (2^(pow2-1));
+forder = 3; % could also be a parameter
+    
+% remove bad channels detected from the averaged signal: to be
+% done!!!!!!!!!!!!
+fprintf('WARNIN and RECOMMENDATIONS!! \n')
+fprintf('Signals are not filtered so use the preprocessing to filter data first!! \n')
+fprintf('Artefact detected are not removed from the spectral computation: should be improved!! \n')
+fprintf('the whole signal is used: used Chunk to isolate a time window or ask to add the possibility to select time window!! \n')
+
+chanroi{1} = handles.inroi1;
+chanroi{2} = handles.inroi2;
+chanroi{3} = handles.inroi3;
+chanroi{4} = handles.inroi4;
+chanroi{5} = handles.inroi5;
+chanroi{6} = handles.inroi6;
+chanroi{7} = handles.inroi7;
+chanroi{8} = handles.inroi8;
+chanroi{9} = handles.inroi9;
+chanroi{10} = handles.inroi10;
+for iroi = 1 : 10
+    [dum chanin dum] = intersect(handles.chanav,chanroi{iroi});
+    D = handles.Dmeg{1}(chanin,:);
+    [S{iroi}.chan{1} F T P] = spectrogram(D(1,:),epoch*fs,[],0.1:fs/nfft:30,fs);
+    h = waitbar(0,['PSD is computing for ROI', num2str(iroi)]);
+    for i = 2 : numel(chanroi{iroi})
+       S{iroi}.chan{i} = spectrogram(D(i,:),epoch*fs,[],0.1:fs/nfft:30,fs);
+       String  =  ['Progress : ' num2str(i/numel(chanroi{iroi})*100) ' %'];
+       waitbar((i/numel(chanroi{iroi})),h,String);
+    end
+    close(h);
+    % power by 2 sec epochs (by default)
+    avg_S{iroi}  = meancell(S{iroi}.chan);
+    args{iroi} = {F,T,10*log10(abs(avg_S{iroi}'))};
+end
+
+
