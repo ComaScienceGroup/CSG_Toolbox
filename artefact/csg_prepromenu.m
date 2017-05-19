@@ -524,7 +524,7 @@ for i = 1 : handles.Nfiles
     warningname = 0;
     % check for each file if this file has already been preprocessed
     for j = 1 : size(filesindir,1) 
-        cfg.filename = fnamedat(handles.Dmeg{i});
+        cfg.filename = fullfile(path(handles.Dmeg{i}),fname(handles.Dmeg{i}));
         if strcmp(deblank(filesindir(j,:)),['P_' fname(handles.Dmeg{i})])
             warningname = j;
                prompt={'These data seem to have been already processed !!! Choose a new name for this preprocessed file: '};
